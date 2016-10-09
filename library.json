@@ -1,0 +1,18 @@
+{
+"name": "Console",
+"frameworks": "Arduino",
+"keywords": "Serial, Console, Wifi",
+"description": "Arduino library for Serial and Wifi Console",
+"url": "https://github.com/blackketter/Console",
+"authors":
+[
+{
+        "name": "Dean Blackketter"
+}
+],
+"repository":
+{
+    "type": "git",
+    "url": "https://github.com/blackketter/Console"
+}
+}
