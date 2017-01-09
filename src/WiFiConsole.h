@@ -4,8 +4,6 @@
 #ifdef ESP8266
 #include "Console.h"
 
-#include "ESP8266WiFi.h"
-
 class WiFiConsole : public Console {
   public:
     void begin();
