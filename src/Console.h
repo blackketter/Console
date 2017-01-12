@@ -30,9 +30,11 @@ class Console : public Stream {
     size_t write(const uint8_t *buf, size_t size);
 
   private:
-    size_t debugPrefix(char* s);
-    bool _debugEnabled = true;
+    void debugPrefix();
     void executeCommandLine();
+
+    bool _debugEnabled = true;
+
     static const int _maxCommandLineLength = 100;  // todo: fixme
     char commandLine[_maxCommandLineLength];
     uint8_t _commandLineLength = 0;
