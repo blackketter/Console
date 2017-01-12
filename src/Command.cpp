@@ -1,4 +1,9 @@
 #include "Command.h"
+#include "Console.h"
+
+Command::Command() {
+  Console::addCommand(this);
+}
 
 void Command::addCommand(Command* add) {
   if (add) {

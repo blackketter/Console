@@ -5,11 +5,10 @@
 
 class Command {
   public:
+    Command();
     virtual void execute(Stream* c, uint8_t paramCount, char** params) = 0;
-    const char* getName() { return _name; }
-    const char* getHelp() { return _help; }
-    void setName(const char* name) { _name = name; }
-    void setHelp(const char* help) { _help = help; }
+    virtual const char* getName() = 0;
+    virtual const char* getHelp() = 0;
     void printError(Stream* c);
 
     void addCommand(Command* add);
@@ -18,8 +17,6 @@ class Command {
     Command* prev() { return _prev; }
 
   protected:
-    const char* _name;
-    const char* _help;
     Command* _next = nullptr;
     Command* _prev = nullptr;
 };

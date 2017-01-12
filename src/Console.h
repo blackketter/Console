@@ -18,8 +18,8 @@ class Console : public Stream {
     void debugEnable(bool enable) { _debugEnabled = enable; };
     bool debugEnabled();
 
-    void addCommand(Command* command) {  _commands->addCommand(command); };
-    void removeCommand(Command* command) { command->removeCommand(); };
+    static void addCommand(Command* command);
+    static void removeCommand(Command* command);
 
 // low level virtual functions
 	  int available();
@@ -32,9 +32,8 @@ class Console : public Stream {
   private:
     size_t debugPrefix(char* s);
     bool _debugEnabled = true;
-    Command* _commands;
     void executeCommandLine();
-    static const int _maxCommandLineLength = 100;
+    static const int _maxCommandLineLength = 100;  // todo: fixme
     char commandLine[_maxCommandLineLength];
     uint8_t _commandLineLength = 0;
 };

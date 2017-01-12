@@ -4,66 +4,9 @@
 #include "Console.h"
 #include "Command.h"
 
-class HelloCommand : public Command {
-  public:
-    HelloCommand() { setName("hello"); setHelp("Greets you"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) { c->print("Hello world!\n"); }
-};
-
-class DebugCommand : public Command {
-  public:
-    DebugCommand() { setName("debug"); setHelp("0|1 - disable/enable debug output"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
-      Console* console = ((Console*)c);
-      if (paramCount == 1) {
-        bool debugState = atoi(params[1]);
-        console->debugEnable(debugState);
-      } else if (paramCount == 0) {
-        console->debugEnable(!console->debugEnabled());
-      }
-      c->printf("Debug: %s\n", console->debugEnabled() ? "on" : "off");
-    }
-};
-
-class HelpCommand : public Command {
-  public:
-    HelpCommand() { setName("help"); setHelp("Prints out this help information"); }
-    void execute(Stream* c, uint8_t paramCount, char** params);
-};
-
-void HelpCommand::execute(Stream* c, uint8_t paramCount, char** params) {
-  Command* firstCommand = this;
-  while (firstCommand->prev()) {
-    firstCommand = firstCommand->prev();
-  }
-
-  Command* currCommand = firstCommand;
-  int commandLen = 0;
-  while (currCommand) {
-    int currLen = strlen(currCommand->getName());
-    if (currLen > commandLen) { commandLen = currLen; }
-    currCommand = currCommand->next();
-  }
-
-  currCommand = firstCommand;
-  while (currCommand) {
-    c->print("  ");
-    c->print(currCommand->getName());
-    for (int i = strlen(currCommand->getName()); i < commandLen + 3; i++) { c->write(' '); }
-    c->print(currCommand->getHelp());
-    c->write('\n');
-    currCommand = currCommand->next();
-  }
-}
+static Command* _commands = nullptr;
 
 Console::Console() {
-  // we need a single command to be in the list to start.
-  _commands = new HelpCommand;
-
-  // add built-in commands
-  _commands->addCommand(new DebugCommand);
-  _commands->addCommand(new HelloCommand);
-
   commandLine[0] = 0;
 }
 
@@ -101,6 +44,7 @@ void Console::loop() {
       } else if (c == '\r') {
         // new line
         write(c);
+        write('\n');
         executeCommandLine();
         _commandLineLength = 0;
         commandLine[0] = 0;
@@ -198,6 +142,23 @@ void Console::executeCommandLine() {
     }
   }
 }
+
+void Console::addCommand(Command* command) {  
+  if (_commands) { 
+    _commands->addCommand(command);
+  } else { 
+    _commands = command; 
+  }
+
+};
+
+void Console::removeCommand(Command* command) {
+  if (command == _commands) {
+    _commands = command->next();
+  } else {
+    command->removeCommand();
+  }
+};
 
 int Console::available() {
   return Serial.available();
