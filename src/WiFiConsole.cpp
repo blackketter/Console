@@ -133,4 +133,9 @@ size_t WiFiConsole::write(const uint8_t *buf, size_t size) {
   return w;
 }
 
+void WiFiConsole::stop() {
+  if (_client && _client.connected()) {
+    _client.stop();
+  }
+}
 #endif

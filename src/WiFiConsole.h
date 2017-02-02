@@ -10,12 +10,13 @@ class WiFiConsole : public Console {
     void loop();
 
 // overrides
-	  int available();
-	  int read();
-    int peek();
-    void flush();
-    size_t write(uint8_t b);
-    size_t write(const uint8_t *buf, size_t size);
+    virtual int available();
+    virtual int read();
+    virtual int peek();
+    virtual void flush();
+    virtual size_t write(uint8_t b);
+    virtual size_t write(const uint8_t *buf, size_t size);
+    virtual void stop();
 
   private:
 };

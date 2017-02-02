@@ -73,7 +73,7 @@ void Console::loop() {
       skip--;
     }
   }
-  
+
   if (toFlush) {
     flush();
   }
@@ -148,11 +148,11 @@ void Console::executeCommandLine() {
   }
 }
 
-void Console::addCommand(Command* command) {  
-  if (_commands) { 
+void Console::addCommand(Command* command) {
+  if (_commands) {
     _commands->addCommand(command);
-  } else { 
-    _commands = command; 
+  } else {
+    _commands = command;
   }
 
 };
@@ -193,38 +193,110 @@ size_t Console::write(const uint8_t *buf, size_t size) {
   return Serial.write(buf,size);
 }
 
-bool Console::debugEnabled() {
-  return _debugEnabled && (_commandLineLength == 0);
-}
-
-void Console::debugPrefix() {
+#define PREFIX_LEN (15)
+void Console::debugPrefix(char* s) {
   int t = ::millis();
-  printf("%8d.%03d: ",t/1000,t%1000);
+  sprintf(s, "%8d.%03d: ",t/1000,t%1000);
 }
 
 void Console::debugf(const char* format, ...) {
-  if (!debugEnabled()) return;
-  debugPrefix();
+  char prefix[PREFIX_LEN];
+  debugPrefix(prefix);
+  if (printDebug()) {
+    print(prefix);
+  }
+  appendLog(prefix);
 
-  va_list argptr;
+// this is lifted from ESP8266 Print.cpp, as we don't have vdprintf() on that platform
+  va_list arg;
+  va_start(arg, format);
+  char temp[64];
+  char* buffer = temp;
+  size_t len = vsnprintf(temp, sizeof(temp), format, arg);
+  va_end(arg);
+  if (len > sizeof(temp) - 1) {
+      buffer = new char[len + 1];
+      if (!buffer) {
+          return;
+      }
+      va_start(arg, format);
+      vsnprintf(buffer, len + 1, format, arg);
+      va_end(arg);
+  }
+  appendLog(buffer);
+  if (printDebug()) {
+    len = write((const uint8_t*) buffer, len);
+  }
+  if (buffer != temp) {
+      delete[] buffer;
+  }
+
+/*  va_list argptr;
   va_start(argptr, format);
   vdprintf((int)this,  format, argptr);
   va_end(argptr);
+*/
 };
 
 void Console::debug(const char* s) {
-  if (!debugEnabled()) return;
-  debugPrefix();
+  char prefix[PREFIX_LEN];
+  debugPrefix(prefix);
+  appendLog(prefix);
+  appendLog(s);
+
+  if (!printDebug()) return;
+  print(prefix);
   print(s);
 }
 void Console::debugln(const char* s) {
-  if (!debugEnabled()) return;
+  appendLog("\n");
+  if (!printDebug()) return;
   debug(s);
   write('\n');
 }
 
+void Console::appendLog(const char *s) {
+  appendLog(s, strlen(s));
+}
+
+void Console::appendLog(const char *s, size_t len) {
+  const char* curChar = s;
+  size_t remaining = len;
+  while (remaining != 0) {
+    _debugLog[_debugLogEnd]  = *curChar;
+
+    _debugLogEnd++;
+
+    if (_debugLogEnd >= _debugLogSize) {
+      _debugLogEnd = 0;
+    }
+
+    if (_debugLogStart == _debugLogEnd) {
+      _debugLogStart++;
+    }
+
+    if (_debugLogStart >= _debugLogSize) {
+      _debugLogStart = 0;
+    }
+
+    curChar++;
+    remaining--;
+  }
+}
+
+void Console::printLog() {
+  if (_debugLogStart > _debugLogEnd) {
+    write((uint8_t*)_debugLog + _debugLogStart, _debugLogSize - _debugLogStart + 1);
+    write((uint8_t*)_debugLog, _debugLogEnd);
+  } else if (_debugLogStart < _debugLogEnd) {
+    write((uint8_t*)_debugLog + _debugLogStart, _debugLogEnd - _debugLogStart + 1);
+  } else {
+    return;
+  }
+};
 
 // Some built-in commands
+////////////////// HelloCommand
 
 class HelloCommand : public Command {
   public:
@@ -235,6 +307,21 @@ class HelloCommand : public Command {
 
 HelloCommand theHelloCommand;
 
+////////////////// Log Command
+
+class LogCommand : public Command {
+  public:
+    const char* getName() { return "log"; }
+    const char* getHelp() { return ("Print out debug log"); }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      Console* console = ((Console*)c);
+      console->printLog();
+    }
+};
+
+LogCommand theLogCommand;
+
+////////////////// DebugCommand
 
 class DebugCommand : public Command {
   public:
@@ -260,6 +347,8 @@ class HelpCommand : public Command {
     const char* getHelp() { return "Prints out this help information"; }
     void execute(Stream* c, uint8_t paramCount, char** params);
 };
+
+////////////////// HelpCommand
 
 void HelpCommand::execute(Stream* c, uint8_t paramCount, char** params) {
   Command* firstCommand = this;
@@ -287,4 +376,3 @@ void HelpCommand::execute(Stream* c, uint8_t paramCount, char** params) {
 }
 
 HelpCommand theHelpCommand;
-

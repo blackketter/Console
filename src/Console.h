@@ -9,6 +9,7 @@ class Console : public Stream {
     Console();
     virtual void begin();
     virtual void loop();
+    virtual void close() { }
 
     void idle() { loop(); } // can't decide the name
 
@@ -16,7 +17,9 @@ class Console : public Stream {
 	  void debugln(const char* s);
 	  void debug(const char* s);
     void debugEnable(bool enable) { _debugEnabled = enable; };
-    bool debugEnabled();
+    bool debugEnabled() { return _debugEnabled; }
+
+    bool printDebug() { return _debugEnabled && (_commandLineLength == 0); }
 
     static void addCommand(Command* command);
     static void removeCommand(Command* command);
@@ -29,8 +32,13 @@ class Console : public Stream {
     size_t write(uint8_t b);
     size_t write(const uint8_t *buf, size_t size);
 
+    // debug logging
+    void printLog();
+    void appendLog(const char* a);
+    void appendLog(const char* a, size_t size);
+
   private:
-    void debugPrefix();
+    void debugPrefix(char* s);
     void executeCommandLine();
 
     bool _debugEnabled = true;
@@ -38,6 +46,11 @@ class Console : public Stream {
     static const int _maxCommandLineLength = 100;  // todo: fixme
     char commandLine[_maxCommandLineLength];
     uint8_t _commandLineLength = 0;
+
+    static const size_t _debugLogSize = 1000;
+    char _debugLog[_debugLogSize]; // log of recent debug output
+    size_t _debugLogStart = 0;
+    size_t _debugLogEnd = 0;
 };
 
 #endif
