@@ -249,10 +249,9 @@ void Console::debug(const char* s) {
   print(s);
 }
 void Console::debugln(const char* s) {
-  appendLog("\n");
-  if (!printDebug()) return;
   debug(s);
-  write('\n');
+  appendLog("\n");
+  if (printDebug()) { write('\n'); }
 }
 
 void Console::appendLog(const char *s) {
