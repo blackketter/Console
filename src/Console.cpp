@@ -282,13 +282,15 @@ void Console::appendLog(const char *s, size_t len) {
     remaining--;
   }
 }
-
 void Console::printLog() {
+  printLog(*this);
+}
+void Console::printLog(Print& p) {
   if (_debugLogStart > _debugLogEnd) {
-    write((uint8_t*)_debugLog + _debugLogStart, _debugLogSize - _debugLogStart + 1);
-    write((uint8_t*)_debugLog, _debugLogEnd);
+    p.write((uint8_t*)_debugLog + _debugLogStart, _debugLogSize - _debugLogStart);
+    p.write((uint8_t*)_debugLog, _debugLogEnd);
   } else if (_debugLogStart < _debugLogEnd) {
-    write((uint8_t*)_debugLog + _debugLogStart, _debugLogEnd - _debugLogStart + 1);
+    p.write((uint8_t*)_debugLog + _debugLogStart, _debugLogEnd - _debugLogStart);
   } else {
     return;
   }

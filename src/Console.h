@@ -34,6 +34,7 @@ class Console : public Stream {
 
     // debug logging
     void printLog();
+    void printLog(Print& p);
     void appendLog(const char* a);
     void appendLog(const char* a, size_t size);
 
