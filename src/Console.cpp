@@ -3,11 +3,15 @@
 
 #include "Console.h"
 #include "Command.h"
+#include "NullStream.h"
 
 static Command* _commands = nullptr;
 
+Console* Console::_theConsole;
+
 Console::Console() {
-  commandLine[0] = 0;
+  _commandLine[0] = 0;
+  _theConsole = this;
 }
 
 void Console::begin() {
@@ -36,7 +40,7 @@ void Console::loop() {
         // backspace
         if (_commandLineLength) {
           _commandLineLength--;
-          commandLine[_commandLineLength] = 0;
+          _commandLine[_commandLineLength] = 0;
           write(8); write(' '); write(8);
         }
         // get rid of prompt
@@ -47,9 +51,9 @@ void Console::loop() {
         // new line
         write(c);
         write('\n');
-        executeCommandLine();
+        executeCommandLine(_commandLine);
         _commandLineLength = 0;
-        commandLine[0] = 0;
+        _commandLine[0] = 0;
       } else if (c == '\n') {
         // ignore
       } else if (c == 0) {
@@ -61,9 +65,9 @@ void Console::loop() {
           if (_commandLineLength == 0) {
             write('>');
           }
-          commandLine[_commandLineLength] = c;
+          _commandLine[_commandLineLength] = c;
           _commandLineLength++;
-          commandLine[_commandLineLength] = 0;
+          _commandLine[_commandLineLength] = 0;
           write(c);
         }
      }
@@ -89,12 +93,29 @@ inline bool isBetween(char c) {
   return isSpace(c) || isEnd(c);
 }
 
-void Console::executeCommandLine() {
+void Console::executeCommandLine(const char* line) {
+  executeCommandLine(this, line);
+}
+
+void Console::executeCommandLine(Stream* output, const char* line) {
   const int maxParams = 5;
   char* params[maxParams];
+  char currLine[_maxCommandLineLength];
   int paramCount = 0;
   int commandLineIndex = 0;
-  char* commandStart = commandLine;
+
+  if ((line == nullptr) || (isEnd(line[0]))) {
+    // no command
+    return;
+  }
+
+  char* commandStart = currLine;
+  strcpy(currLine, line);
+
+  NullStream nullStream;
+  if (output == nullptr) {
+    output = &nullStream;
+  }
 
   // parse out the command and parameters
   while (1) {
@@ -135,15 +156,14 @@ void Console::executeCommandLine() {
     while (currCommand != nullptr) {
       if (strcmp(currCommand->getName(), params[0]) == 0) {
         // paramcount is the number of parameters after the name
-        currCommand->execute(this, paramCount-1, params);
+        currCommand->execute(output, paramCount-1, params);
         break;
       }
       currCommand = currCommand->next();
     }
     if (currCommand == nullptr) {
-      printf("Unknown Command: %s\n", params[0]);
-      strcpy(commandLine, "help");
-      executeCommandLine();
+      output->printf("Unknown Command: %s\n", params[0]);
+      executeCommandLine(output, "help");
     }
   }
 }
@@ -283,14 +303,15 @@ void Console::appendLog(const char *s, size_t len) {
   }
 }
 void Console::printLog() {
-  printLog(*this);
+  printLog(this);
 }
-void Console::printLog(Print& p) {
+
+void Console::printLog(Print* p) {
   if (_debugLogStart > _debugLogEnd) {
-    p.write((uint8_t*)_debugLog + _debugLogStart, _debugLogSize - _debugLogStart);
-    p.write((uint8_t*)_debugLog, _debugLogEnd);
+    p->write((uint8_t*)_debugLog + _debugLogStart, _debugLogSize - _debugLogStart);
+    p->write((uint8_t*)_debugLog, _debugLogEnd);
   } else if (_debugLogStart < _debugLogEnd) {
-    p.write((uint8_t*)_debugLog + _debugLogStart, _debugLogEnd - _debugLogStart);
+    p->write((uint8_t*)_debugLog + _debugLogStart, _debugLogEnd - _debugLogStart);
   } else {
     return;
   }
@@ -315,8 +336,7 @@ class LogCommand : public Command {
     const char* getName() { return "log"; }
     const char* getHelp() { return ("Print out debug log"); }
     void execute(Stream* c, uint8_t paramCount, char** params) {
-      Console* console = ((Console*)c);
-      console->printLog();
+      Console::get()->printLog(c);
     }
 };
 
@@ -329,14 +349,13 @@ class DebugCommand : public Command {
     const char* getName() { return "debug"; }
     const char* getHelp() { return ("0|1 - disable/enable debug output"); }
     void execute(Stream* c, uint8_t paramCount, char** params) {
-      Console* console = ((Console*)c);
       if (paramCount == 1) {
         bool debugState = atoi(params[1]);
-        console->debugEnable(debugState);
+        Console::get()->debugEnable(debugState);
       } else if (paramCount == 0) {
-        console->debugEnable(!console->debugEnabled());
+        Console::get()->debugEnable(!Console::get()->debugEnabled());
       }
-      c->printf("Debug: %s\n", console->debugEnabled() ? "on" : "off");
+      c->printf("Debug: %s\n", Console::get()->debugEnabled() ? "on" : "off");
     }
 };
 
@@ -356,6 +375,7 @@ void HelpCommand::execute(Stream* c, uint8_t paramCount, char** params) {
   while (firstCommand->prev()) {
     firstCommand = firstCommand->prev();
   }
+  c->print("Known Commands:\n");
 
   Command* currCommand = firstCommand;
   int commandLen = 0;

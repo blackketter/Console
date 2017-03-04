@@ -13,9 +13,9 @@ class Console : public Stream {
 
     void idle() { loop(); } // can't decide the name
 
-	  void debugf(const char* format, ...);
-	  void debugln(const char* s);
-	  void debug(const char* s);
+    void debugf(const char* format, ...);
+    void debugln(const char* s);
+    void debug(const char* s);
     void debugEnable(bool enable) { _debugEnabled = enable; };
     bool debugEnabled() { return _debugEnabled; }
 
@@ -24,9 +24,14 @@ class Console : public Stream {
     static void addCommand(Command* command);
     static void removeCommand(Command* command);
 
+    void executeCommandLine(const char* line);
+
+    // execute command line to another stream.  safe to pass nullptr for output if you don't care about the result
+    static void executeCommandLine(Stream* output, const char* line);
+
 // low level virtual functions
-	  int available();
-	  int read();
+    int available();
+    int read();
     int peek();
     void flush();
     size_t write(uint8_t b);
@@ -34,24 +39,24 @@ class Console : public Stream {
 
     // debug logging
     void printLog();
-    void printLog(Print& p);
+    void printLog(Print* p);
     void appendLog(const char* a);
     void appendLog(const char* a, size_t size);
-
+    static Console* get() { return _theConsole; }
   private:
     void debugPrefix(char* s);
-    void executeCommandLine();
 
     bool _debugEnabled = true;
 
     static const int _maxCommandLineLength = 100;  // todo: fixme
-    char commandLine[_maxCommandLineLength];
+    char _commandLine[_maxCommandLineLength];
     uint8_t _commandLineLength = 0;
 
     static const size_t _debugLogSize = 1000;
     char _debugLog[_debugLogSize]; // log of recent debug output
     size_t _debugLogStart = 0;
     size_t _debugLogEnd = 0;
+    static Console* _theConsole;
 };
 
 #endif
