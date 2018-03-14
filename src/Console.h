@@ -7,9 +7,12 @@
 class Console : public Stream {
   public:
     Console();
+    Console(Stream* port);
     virtual void begin();
     virtual void loop();
     virtual void close() { }
+    Stream* getPort() { return _port; }
+    void setPort(Stream* port) { _port = port; }
 
     void idle() { loop(); } // can't decide the name
 
@@ -45,6 +48,8 @@ class Console : public Stream {
     static Console* get() { return _theConsole; }
   private:
     void debugPrefix(char* s);
+
+    Stream* _port = nullptr;
 
     bool _debugEnabled = true;
 

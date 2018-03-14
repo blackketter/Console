@@ -5,6 +5,8 @@
 #include "Command.h"
 #include "NullStream.h"
 
+#include "Commands/Commands.h"
+
 static Command* _commands = nullptr;
 
 Console* Console::_theConsole;
@@ -15,7 +17,11 @@ Console::Console() {
 }
 
 void Console::begin() {
-  Serial.begin(115200);
+  // if a port has not been specified, then default to the main serial port
+  if (_port == nullptr) {
+    _port = &Serial;
+    Serial.begin(115200);
+  }
 }
 
 void Console::loop() {
@@ -48,6 +54,9 @@ void Console::loop() {
           write(8); write(' '); write(8);
         }
       } else if (c == '\r') {
+        if (_commandLineLength == 0) {
+          write('>');
+        }
         // new line
         write(c);
         write('\n');
@@ -186,31 +195,31 @@ void Console::removeCommand(Command* command) {
 };
 
 int Console::available() {
-  return Serial.available();
+  return _port->available();
 };
 
 
 int Console::read() {
-  return Serial.read();
+  return _port->read();
 };
 
 
 int Console::peek() {
-  return Serial.peek();
+  return _port->peek();
 };
 
 
 void Console::flush() {
-  Serial.flush();
+  _port->flush();
 };
 
 
 size_t Console::write(uint8_t b) {
-  return Serial.write(b);
+  return _port->write(b);
 };
 
 size_t Console::write(const uint8_t *buf, size_t size) {
-  return Serial.write(buf,size);
+  return _port->write(buf,size);
 }
 
 #define PREFIX_LEN (15)
@@ -361,14 +370,14 @@ class DebugCommand : public Command {
 
 DebugCommand theDebugCommand;
 
+////////////////// HelpCommand
+
 class HelpCommand : public Command {
   public:
     const char* getName() { return "help"; }
     const char* getHelp() { return "Prints out this help information"; }
     void execute(Stream* c, uint8_t paramCount, char** params);
 };
-
-////////////////// HelpCommand
 
 void HelpCommand::execute(Stream* c, uint8_t paramCount, char** params) {
   Command* firstCommand = this;

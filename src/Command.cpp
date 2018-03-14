@@ -26,5 +26,5 @@ void Command::removeCommand() {
 }
 
 void Command::printError(Stream* c) {
-  c->printf("Error: %s %s\n", getName(), getHelp());
+  c->printf("Usage: %s %s\n", getName(), getHelp());
 }
