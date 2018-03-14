@@ -24,7 +24,7 @@ void Console::begin() {
   }
 }
 
-void Console::loop() {
+void Console::idle() {
 // loopback (100 chars at a time, max)
   uint8_t i = 100;
   uint8_t skip = 0;

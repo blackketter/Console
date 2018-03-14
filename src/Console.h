@@ -9,12 +9,10 @@ class Console : public Stream {
     Console();
     Console(Stream* port);
     virtual void begin();
-    virtual void loop();
+    virtual void idle();
     virtual void close() { }
     Stream* getPort() { return _port; }
     void setPort(Stream* port) { _port = port; }
-
-    void idle() { loop(); } // can't decide the name
 
     void debugf(const char* format, ...);
     void debugln(const char* s);

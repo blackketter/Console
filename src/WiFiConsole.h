@@ -7,7 +7,7 @@
 class WiFiConsole : public Console {
   public:
     void begin();
-    void loop();
+    void idle();
 
 // overrides
     virtual int available();

@@ -12,7 +12,7 @@ void WiFiConsole::begin() {
   _telnetServer.setNoDelay(true);
 };
 
-void WiFiConsole::loop() {
+void WiFiConsole::idle() {
 
   if (_client && (_client.status() != ESTABLISHED)){
     _client.stop();
@@ -44,7 +44,7 @@ void WiFiConsole::loop() {
 //      _client.write(TELNET_ECHO);
     }
   }
-  Console::loop();
+  Console::idle();
 };
 
 int WiFiConsole::available() {
