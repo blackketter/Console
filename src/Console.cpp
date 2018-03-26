@@ -14,6 +14,7 @@ Console* Console::_theConsole;
 Console::Console() {
   _commandLine[0] = 0;
   _theConsole = this;
+  _lines = new CommandLine(0, "REM");
 }
 
 void Console::begin() {
@@ -22,6 +23,8 @@ void Console::begin() {
     _port = &Serial;
     Serial.begin(115200);
   }
+  // this assumes all commands are added by their global static instance constructors
+  sortCommands();
 }
 
 void Console::idle() {
@@ -102,6 +105,10 @@ inline bool isBetween(char c) {
   return isSpace(c) || isEnd(c);
 }
 
+inline bool isLineNum(char c) {
+  return c >= '0' && c <= '9';
+}
+
 void Console::executeCommandLine(const char* line) {
   executeCommandLine(this, line);
 }
@@ -135,6 +142,28 @@ void Console::executeCommandLine(Stream* output, const char* line) {
 
     if (isEnd(commandStart[commandLineIndex])) {
       break;
+    }
+
+    if (isLineNum(commandStart[commandLineIndex])) {
+      linenumber_t n = atoi(&commandStart[commandLineIndex]);
+      while (isLineNum(commandStart[commandLineIndex])) {
+        commandLineIndex++;
+      }
+      while (isSpace(commandStart[commandLineIndex])) {
+        commandLineIndex++;
+      }
+      if (n) {
+        if (strlen(&commandStart[commandLineIndex])) {
+          CommandLine* commandLine = new CommandLine(n, &commandStart[commandLineIndex]);
+          if (commandLine) {
+            _lines->addLine(commandLine);  // we always have a first line, a REMark
+          }
+        } else {
+          CommandLine* del = _lines->removeLine(n);
+          if (del) { delete del; }
+        }
+        return; // added the line to the current program
+      }
     }
 
     commandStart += commandLineIndex;
@@ -179,18 +208,50 @@ void Console::executeCommandLine(Stream* output, const char* line) {
 
 void Console::addCommand(Command* command) {
   if (_commands) {
-    _commands->addCommand(command);
-  } else {
-    _commands = command;
+    _commands->setPrev(command);
+    command->setNext(_commands);
   }
+  _commands = command;
+}
 
-};
+void Console::sortCommands() {
+  Command* toSort = _commands->next();
+  _commands->setNext(nullptr);
 
-void Console::removeCommand(Command* command) {
-  if (command == _commands) {
-    _commands = command->next();
-  } else {
-    command->removeCommand();
+  toSort->setPrev(nullptr);
+
+  while (toSort) {
+    Command* sorted = _commands;
+    Command* next = toSort->next();
+    do {
+      // time to insert?
+      if (strcasecmp(sorted->getName(), toSort->getName()) > 0) {
+        toSort->setPrev(sorted->prev());
+        toSort->setNext(sorted);
+
+        Command* prev = sorted->prev();
+        sorted->setPrev(toSort);
+
+        // first in list
+        if (sorted == _commands) {
+          _commands = toSort;
+        } else {
+          prev->setNext(toSort);
+        }
+        break;
+      }
+      // last in list
+      if (sorted->next() == nullptr) {
+        sorted->setNext(toSort);
+        toSort->setPrev(sorted);
+        toSort->setNext(nullptr);
+        break;
+      } else {
+        sorted = sorted->next();
+      }
+    } while (sorted);
+
+    toSort = next;
   }
 };
 
@@ -337,6 +398,23 @@ class HelloCommand : public Command {
 };
 
 HelloCommand theHelloCommand;
+
+////////////////// List Command
+class ListCommand : public Command {
+  public:
+    const char* getName() { return "list"; }
+    const char* getHelp() { return "Prints out listing of current program"; }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      CommandLine* line = Console::get()->getLines();
+      while (line) {
+        if (line->getNumber()) {
+          c->printf("%5d %s\n", line->getNumber(), line->c_str());
+        }
+        line = line->getNext();
+      }
+    }
+};
+ListCommand theListCommand;
 
 ////////////////// Log Command
 
