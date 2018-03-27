@@ -132,20 +132,13 @@ void Console::executeCommandLine(Stream* output, const char* line) {
   if (output == nullptr) {
     output = &nullStream;
   }
+  while (isSpace(commandStart[commandLineIndex])) {
+    commandLineIndex++;
+  }
 
-  // parse out the command and parameters
-  while (1) {
-//    printf("(first:%d)", commandStart[commandLineIndex]);
-    while (isSpace(commandStart[commandLineIndex])) {
-      commandLineIndex++;
-    }
-
-    if (isEnd(commandStart[commandLineIndex])) {
-      break;
-    }
-
-    if (isLineNum(commandStart[commandLineIndex])) {
-      linenumber_t n = atoi(&commandStart[commandLineIndex]);
+  if (isLineNum(commandStart[commandLineIndex])) {
+    linenumber_t n = atoi(&commandStart[commandLineIndex]);
+    if (n) {
       while (isLineNum(commandStart[commandLineIndex])) {
         commandLineIndex++;
       }
@@ -164,6 +157,18 @@ void Console::executeCommandLine(Stream* output, const char* line) {
         }
         return; // added the line to the current program
       }
+    }
+  }
+
+  // parse out the command and parameters
+  while (1) {
+//    printf("(first:%d)", commandStart[commandLineIndex]);
+    while (isSpace(commandStart[commandLineIndex])) {
+      commandLineIndex++;
+    }
+
+    if (isEnd(commandStart[commandLineIndex])) {
+      break;
     }
 
     commandStart += commandLineIndex;
@@ -256,37 +261,59 @@ void Console::sortCommands() {
 };
 
 int Console::available() {
-  return _port->available();
+  if (_port) {
+    return _port->available();
+  } else {
+    return 0;
+  }
 };
 
 
 int Console::read() {
-  return _port->read();
+  if (_port) {
+    return _port->read();
+  } else {
+    return 0;
+  }
 };
 
 
 int Console::peek() {
-  return _port->peek();
+  if (_port) {
+    return _port->peek();
+  } else {
+    return 0;
+  }
 };
 
 
 void Console::flush() {
-  _port->flush();
+  if (_port) {
+    _port->flush();
+  }
 };
 
 
 size_t Console::write(uint8_t b) {
-  return _port->write(b);
+  size_t wrote = 1;
+  if (_port) {
+    wrote = _port->write(b);
+  }
+  return wrote;
 };
 
 size_t Console::write(const uint8_t *buf, size_t size) {
-  return _port->write(buf,size);
+  size_t wrote = size;
+  if (_port) {
+    wrote = _port->write(buf,size);
+  }
+  return wrote;
 }
 
 #define PREFIX_LEN (15)
 void Console::debugPrefix(char* s) {
   int t = ::millis();
-  sprintf(s, "%8d.%03d: ",t/1000,t%1000);
+  sprintf(s, "%6d.%03d: ",t/1000,t%1000);
 }
 
 void Console::debugf(const char* format, ...) {
@@ -344,11 +371,11 @@ void Console::debugln(const char* s) {
   if (printDebug()) { write('\n'); }
 }
 
-void Console::appendLog(const char *s) {
+void Console::appendLog(const char* s) {
   appendLog(s, strlen(s));
 }
 
-void Console::appendLog(const char *s, size_t len) {
+void Console::appendLog(const char*s, size_t len) {
   const char* curChar = s;
   size_t remaining = len;
   while (remaining != 0) {
