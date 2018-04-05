@@ -24,10 +24,12 @@ class Console : public Stream {
 
     static void addCommand(Command* command);
     void sortCommands();
-    void executeCommandLine(const char* line);
+
+    // returns true for failure, false for success
+    bool executeCommandLine(const char* line);
 
     // execute command line to another stream.  safe to pass nullptr for output if you don't care about the result
-    void executeCommandLine(Stream* output, const char* line);
+    bool executeCommandLine(Stream* output, const char* line);
 
     CommandLine* getLines() { return _lines; }
 

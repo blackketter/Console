@@ -63,9 +63,12 @@ void Console::idle() {
         // new line
         write(c);
         write('\n');
-        executeCommandLine(_commandLine);
+        bool fail = executeCommandLine(_commandLine);
         _commandLineLength = 0;
         _commandLine[0] = 0;
+        if (fail) {
+          executeCommandLine("help");
+        }
       } else if (c == '\n') {
         // ignore
       } else if (c == 0) {
@@ -109,11 +112,11 @@ inline bool isLineNum(char c) {
   return c >= '0' && c <= '9';
 }
 
-void Console::executeCommandLine(const char* line) {
-  executeCommandLine(this, line);
+bool Console::executeCommandLine(const char* line) {
+  return executeCommandLine(this, line);
 }
 
-void Console::executeCommandLine(Stream* output, const char* line) {
+bool Console::executeCommandLine(Stream* output, const char* line) {
   const int maxParams = 5;
   char* params[maxParams];
   char currLine[_maxCommandLineLength];
@@ -121,8 +124,8 @@ void Console::executeCommandLine(Stream* output, const char* line) {
   int commandLineIndex = 0;
 
   if ((line == nullptr) || (isEnd(line[0]))) {
-    // no command
-    return;
+    // no command, it succeeds
+    return false;
   }
 
   char* commandStart = currLine;
@@ -155,7 +158,8 @@ void Console::executeCommandLine(Stream* output, const char* line) {
           CommandLine* del = _lines->removeLine(n);
           if (del) { delete del; }
         }
-        return; // added the line to the current program
+        // returns success
+        return false; // added the line to the current program
       }
     }
   }
@@ -195,9 +199,10 @@ void Console::executeCommandLine(Stream* output, const char* line) {
 
   Command* currCommand = _commands;
 
+  bool failure = false;
   if (paramCount) {
     while (currCommand != nullptr) {
-      if (strcmp(currCommand->getName(), params[0]) == 0) {
+      if (strcasecmp(currCommand->getName(), params[0]) == 0) {
         // paramcount is the number of parameters after the name
         currCommand->execute(output, paramCount-1, params);
         break;
@@ -205,10 +210,11 @@ void Console::executeCommandLine(Stream* output, const char* line) {
       currCommand = currCommand->next();
     }
     if (currCommand == nullptr) {
+      failure = true;
       output->printf("Unknown Command: %s\n", params[0]);
-      executeCommandLine(output, "help");
     }
   }
+  return failure;
 }
 
 void Console::addCommand(Command* command) {
@@ -443,6 +449,24 @@ class ListCommand : public Command {
 };
 ListCommand theListCommand;
 
+////////////////// Run Command
+class RunCommand : public Command {
+  public:
+    const char* getName() { return "run"; }
+    const char* getHelp() { return "Runs current program"; }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      CommandLine* line = Console::get()->getLines();
+      while (line) {
+        bool fail = Console::get()->executeCommandLine(c, line->c_str());
+        if (fail) {
+          break;
+        }
+        line = line->getNext();
+      }
+    }
+};
+RunCommand theRunCommand;
+
 ////////////////// Log Command
 
 class LogCommand : public Command {
@@ -455,6 +479,19 @@ class LogCommand : public Command {
 };
 
 LogCommand theLogCommand;
+
+////////////////// Rem Command
+
+class RemCommand : public Command {
+  public:
+    const char* getName() { return "rem"; }
+    const char* getHelp() { return ("just a remark"); }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+    }
+};
+
+RemCommand theRemCommand;
+
 
 ////////////////// DebugCommand
 
