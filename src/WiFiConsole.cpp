@@ -1,6 +1,11 @@
-#ifdef ESP8266
+#if defined(ESP8266) || defined(ESP32)
+
 #include "WiFiConsole.h"
+#if defined(ESP8266)
 #include "ESP8266WiFi.h"
+#else
+#include "WiFi.h"
+#endif
 
 // todo: make these class fields
 WiFiClient _client;
@@ -14,9 +19,12 @@ void WiFiConsole::begin() {
 
 void WiFiConsole::idle() {
 
+// todo: I don't know if this is necessary on ESP32
+#if defined(ESP8266)
   if (_client && (_client.status() != ESTABLISHED)){
     _client.stop();
   }
+#endif
 
   // reject second client attempt
   if (_telnetServer.hasClient()) {

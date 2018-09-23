@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 #include "Command.h"
+#include "WString.h"
+#include "CommandLine.h"
 
 class Console : public Stream {
   public:

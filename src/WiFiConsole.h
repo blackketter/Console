@@ -1,7 +1,8 @@
 #ifndef _WiFiConsole_
 #define _WiFiConsole_
 
-#ifdef ESP8266
+#if defined(ESP32) || defined(ESP8266)
+
 #include "Console.h"
 
 class WiFiConsole : public Console {

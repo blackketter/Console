@@ -3,6 +3,7 @@
 
 #include "Console.h"
 #include "Command.h"
+#include "CommandLine.h"
 #include "NullStream.h"
 
 #include "Commands/Commands.h"
@@ -410,11 +411,39 @@ void Console::printLog() {
 }
 
 void Console::printLog(Print* p) {
-  if (_debugLogStart > _debugLogEnd) {
-    p->write((uint8_t*)_debugLog + _debugLogStart, _debugLogSize - _debugLogStart);
-    p->write((uint8_t*)_debugLog, _debugLogEnd);
-  } else if (_debugLogStart < _debugLogEnd) {
-    p->write((uint8_t*)_debugLog + _debugLogStart, _debugLogEnd - _debugLogStart);
+  char* start;
+  size_t len;
+
+  // TODO BUG: ESP32 and ESP8266 fail on the line below when connected via TCP.
+  //  teensy and ESP via serial work just fine.  Crazy world.
+
+ if (_debugLogStart < _debugLogEnd) {
+    start = _debugLog + _debugLogStart;
+    len = _debugLogEnd - _debugLogStart;
+
+    p->write(start, len);
+
+  } else if (_debugLogEnd < _debugLogStart) {
+
+    start = _debugLog + _debugLogStart;
+    len = _debugLogSize - _debugLogStart;
+
+    p->write(start, len);
+
+    start = _debugLog;
+    len = _debugLogEnd;
+
+#if defined(ESP8266) || defined(ESP32)
+  // TODO BUG: ESP32 and ESP8266 fail on the line below when connected via TCP.
+  //  teensy and ESP via serial work just fine.  Crazy world.
+    size_t i = 0;
+    while (i < len) {
+      p->write(start[i++]);
+    }
+#else
+    p->write(start, len);
+#endif
+
   } else {
     return;
   }
