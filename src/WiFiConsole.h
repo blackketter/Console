@@ -9,6 +9,8 @@ class WiFiConsole : public Console {
   public:
     void begin();
     void idle();
+    void setTelnetMode(bool telnetMode) { _telnetMode = telnetMode; };
+    bool getTelnetMode() { return _telnetMode; };
 
 // overrides
     virtual int available();
@@ -20,6 +22,7 @@ class WiFiConsole : public Console {
     virtual void stop();
 
   private:
+    bool _telnetMode = false;
 };
 
 #endif

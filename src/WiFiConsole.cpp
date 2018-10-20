@@ -13,7 +13,7 @@ WiFiServer _telnetServer(23);
 
 void WiFiConsole::begin() {
   Console::begin();
-  _telnetServer.begin();
+  _telnetServer.begin(23);
   _telnetServer.setNoDelay(true);
 };
 
@@ -30,9 +30,11 @@ void WiFiConsole::idle() {
   if (_telnetServer.hasClient()) {
     if (_client && _client.connected()){
       _telnetServer.available().stop();
+      Console::debugln("refused!");
     } else {
       // get telnet client to do character mode
       _client = _telnetServer.available();
+      Console::debugln("available!");
 
 #define TELNET_IAC 255
 
@@ -104,10 +106,12 @@ void WiFiConsole::flush() {
 
 size_t WiFiConsole::write(uint8_t b) {
   size_t w;
-  if (b == ASCII_LF) { b = ASCII_CR; }
   if (_client && _client.connected()) {
     w = _client.write(b);
   } else {
+    if (_telnetMode && b == ASCII_LF) {
+      Console::write(ASCII_CR);
+    }
     w = Console::write(b);
   }
   return w;
@@ -118,22 +122,21 @@ size_t WiFiConsole::write(const uint8_t *buf, size_t size) {
   size_t w;
 
   if (_client && _client.connected()) {
-    uint8_t fixedBuf[size];
+    uint8_t fixedBuf[size*2];
     int i = 0;
+    int j = 0;
     // remap LF to CR for Telnet
-    while (1) {
+    while (i <= size) {
       uint8_t c = buf[i];
-      if (c == ASCII_LF) {
-        fixedBuf[i] = ASCII_CR;
+      if (_telnetMode && c == ASCII_LF) {
+        fixedBuf[j++] = ASCII_CR;
+        fixedBuf[j++] = ASCII_LF;
       } else {
-        fixedBuf[i] = c;
-      }
-      if (c == 0) {
-        break;
+        fixedBuf[j++] = c;
       }
       i++;
     }
-    w = _client.write(fixedBuf,size);
+    w = _client.write(fixedBuf,j);
 
   } else {
     w = Console::write(buf,size);
