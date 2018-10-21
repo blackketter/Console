@@ -30,11 +30,9 @@ void WiFiConsole::idle() {
   if (_telnetServer.hasClient()) {
     if (_client && _client.connected()){
       _telnetServer.available().stop();
-      Console::debugln("refused!");
     } else {
       // get telnet client to do character mode
       _client = _telnetServer.available();
-      Console::debugln("available!");
 
 #define TELNET_IAC 255
 
