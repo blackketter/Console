@@ -319,7 +319,7 @@ size_t Console::write(const uint8_t *buf, size_t size) {
 
 #define PREFIX_LEN (15)
 void Console::debugPrefix(char* s) {
-  int t = ::millis();
+  uint32_t t = ::millis();
   sprintf(s, "%6d.%03d: ",t/1000,t%1000);
 }
 
