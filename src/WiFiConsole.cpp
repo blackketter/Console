@@ -121,7 +121,7 @@ size_t WiFiConsole::write(const uint8_t *buf, size_t size) {
 
   if (_client && _client.connected()) {
     uint8_t fixedBuf[size*2];
-    int i = 0;
+    size_t i = 0;
     int j = 0;
     // remap LF to CR for Telnet
     while (i <= size) {
