@@ -31,7 +31,6 @@ void Console::begin() {
 void Console::idle() {
 // loopback (100 chars at a time, max)
   uint8_t i = 100;
-  uint8_t skip = 0;
   bool toFlush = false;
 
   while (i-- && available()) {
@@ -39,14 +38,9 @@ void Console::idle() {
 
     uint8_t c = read();
 
-// ignore telnet sequences for now
-    if (c==255 && skip==0) {
-      skip = 2;
-    }
-
-    if (c < 128 && (!skip)) {
+    if (c < 128) {
       // valid character
-      if (c == 8) {
+      if (c == 8 || c == 127) {
         // backspace
         if (_commandLineLength) {
           _commandLineLength--;
@@ -87,10 +81,6 @@ void Console::idle() {
           write(c);
         }
      }
-    }
-
-    if (skip && c !=255) {
-      skip--;
     }
   }
 
@@ -213,6 +203,7 @@ bool Console::executeCommandLine(Stream* output, const char* line) {
     if (currCommand == nullptr) {
       failure = true;
       output->printf("Unknown Command: %s\n", params[0]);
+
     }
   }
   return failure;

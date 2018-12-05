@@ -22,7 +22,8 @@ class WiFiConsole : public Console {
     virtual void stop();
 
   private:
-    bool _telnetMode = false;
+    bool _telnetMode = true;
+    void checkIAC();
 };
 
 #endif
