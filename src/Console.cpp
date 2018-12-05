@@ -58,8 +58,8 @@ void Console::idle() {
         // new line
         write(c);
         write('\n');
-        bool fail = executeCommandLine(_commandLine);
         _commandLineLength = 0;
+        bool fail = executeCommandLine(_commandLine);
         _commandLine[0] = 0;
         if (fail) {
           executeCommandLine("help");
