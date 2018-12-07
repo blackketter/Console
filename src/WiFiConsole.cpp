@@ -61,9 +61,10 @@ void WiFiConsole::idle() {
 void WiFiConsole::checkIAC() {
   while (_client && _client.connected() && _client.peek() == TELNET_IAC) {
     // read IAC command and ignore for now
-    uint8_t iac = _client.read();
+    //uint8_t iac =
+      _client.read();
     uint8_t operation = _client.read();
-    uint8_t option = 0;
+    //uint8_t option = 0;
     uint8_t sub = 0;
     if (operation == TELNET_SB) {
 //      debugf("iac: %d %d\n", iac, operation);
@@ -71,12 +72,13 @@ void WiFiConsole::checkIAC() {
         sub = _client.read();
 //        debugf(" sub: %3d '%c'\n", sub, sub >= ' ' && sub < 127 ? sub : 0);
       } while (sub != TELNET_IAC);
-      iac = sub;
+      //iac = sub;
       if (_client.peek() != TELNET_IAC) {
         operation = _client.read();
       }
     } else {
-      option = _client.read();
+      //option =
+      _client.read();
     }
 //    debugf("iac: %d %d %d\n", iac, operation, option);
 
