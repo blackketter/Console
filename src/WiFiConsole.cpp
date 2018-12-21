@@ -43,17 +43,17 @@ void WiFiConsole::idle() {
   }
 #endif
 
-  // reject second client attempt
+  // new client kicks old client off
   if (_telnetServer.hasClient()) {
     if (_client && _client.connected()){
-      _telnetServer.available().stop();
-    } else {
-      // new client
-      // get telnet client to do character mode
-      _client = _telnetServer.available();
-      _telnetMode = false; // reset telnet mode to false to start
+      stop();
     }
+    // new client
+    // get telnet client to do character mode
+    _client = _telnetServer.available();
+    _telnetMode = false; // reset telnet mode to false to start
   }
+
   checkIAC();
   Console::idle();
 };
