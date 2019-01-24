@@ -68,6 +68,14 @@ void Console::idle() {
         // ignore
       } else if (c == 0) {
         // ignore
+      } else if (c == 3) {
+        // control-c
+        if (_commandLineLength == 0) {
+          write('>');
+        }
+        write('\n');
+        _commandLine[0] = 0;
+        close();
       }  else {
         // ignore some characters (tab, extra chars past the max line length)
         if (c != '\t' || _commandLineLength < _maxCommandLineLength) {

@@ -46,7 +46,7 @@ void WiFiConsole::idle() {
   // new client kicks old client off
   if (_telnetServer.hasClient()) {
     if (_client && _client.connected()){
-      stop();
+      close();
     }
     // new client
     // get telnet client to do character mode
@@ -184,7 +184,7 @@ size_t WiFiConsole::write(const uint8_t *buf, size_t size) {
   return w;
 }
 
-void WiFiConsole::stop() {
+void WiFiConsole::close() {
   if (_client && _client.connected()) {
     _client.stop();
   }
