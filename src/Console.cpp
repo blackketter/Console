@@ -31,7 +31,6 @@ void Console::begin() {
 void Console::idle() {
 // loopback (100 chars at a time, max)
   uint8_t i = 100;
-  uint8_t skip = 0;
   bool toFlush = false;
 
   while (i-- && available()) {
@@ -39,14 +38,9 @@ void Console::idle() {
 
     uint8_t c = read();
 
-// ignore telnet sequences for now
-    if (c==255 && skip==0) {
-      skip = 2;
-    }
-
-    if (c < 128 && (!skip)) {
+    if (c < 128) {
       // valid character
-      if (c == 8) {
+      if (c == 8 || c == 127) {
         // backspace
         if (_commandLineLength) {
           _commandLineLength--;
@@ -64,8 +58,8 @@ void Console::idle() {
         // new line
         write(c);
         write('\n');
-        bool fail = executeCommandLine(_commandLine);
         _commandLineLength = 0;
+        bool fail = executeCommandLine(_commandLine);
         _commandLine[0] = 0;
         if (fail) {
           executeCommandLine("help");
@@ -74,6 +68,14 @@ void Console::idle() {
         // ignore
       } else if (c == 0) {
         // ignore
+      } else if (c == 3) {
+        // control-c
+        if (_commandLineLength == 0) {
+          write('>');
+        }
+        write('\n');
+        _commandLine[0] = 0;
+        close();
       }  else {
         // ignore some characters (tab, extra chars past the max line length)
         if (c != '\t' || _commandLineLength < _maxCommandLineLength) {
@@ -87,10 +89,6 @@ void Console::idle() {
           write(c);
         }
      }
-    }
-
-    if (skip && c !=255) {
-      skip--;
     }
   }
 
@@ -213,6 +211,7 @@ bool Console::executeCommandLine(Stream* output, const char* line) {
     if (currCommand == nullptr) {
       failure = true;
       output->printf("Unknown Command: %s\n", params[0]);
+
     }
   }
   return failure;
@@ -319,7 +318,7 @@ size_t Console::write(const uint8_t *buf, size_t size) {
 
 #define PREFIX_LEN (15)
 void Console::debugPrefix(char* s) {
-  int t = ::millis();
+  uint32_t t = ::millis();
   sprintf(s, "%6d.%03d: ",t/1000,t%1000);
 }
 

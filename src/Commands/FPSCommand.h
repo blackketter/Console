@@ -16,14 +16,16 @@ class FPSCommand : public Command {
       millis_t now = Uptime::millis();
       millis_t frameDur = now - lastFrame;
       if (frameDur > maxFrame) { maxFrame = frameDur; }
+      if (frameDur < minFrame) { minFrame = frameDur; }
       if (now - lastTime > 1000) {
        _lastFPS = ((float)(frames*1000))/(now - lastTime);
         if (enable && cons) {
-          cons->printf("FPS: %.2f (Max frame: %dms, Max idle: %dms)\n", _lastFPS, (int)maxFrame, (int)maxIdle);
+          cons->printf("FPS: %.2f (Max frame: %dms, Min frame: %dms, Max idle: %dms)\n", _lastFPS, (int)maxFrame, (int)minFrame, (int)maxIdle);
         }
         lastTime = now;
         frames = 0;
         maxFrame = 0;
+        minFrame = 10000;
         maxIdle = 0;
       }
       lastFrame = now;
@@ -44,6 +46,7 @@ class FPSCommand : public Command {
     millis_t lastTime;
     millis_t lastFrame;
     millis_t maxFrame;
+    millis_t minFrame;
 
     float _lastFPS;
 

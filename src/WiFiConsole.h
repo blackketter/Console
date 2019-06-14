@@ -19,10 +19,11 @@ class WiFiConsole : public Console {
     virtual void flush();
     virtual size_t write(uint8_t b);
     virtual size_t write(const uint8_t *buf, size_t size);
-    virtual void stop();
+    virtual void close();
 
   private:
-    bool _telnetMode = false;
+    bool _telnetMode = true;
+    void checkIAC();
 };
 
 #endif
