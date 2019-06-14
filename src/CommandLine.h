@@ -5,12 +5,7 @@ typedef uint16_t linenumber_t;
 
 class CommandLine : public String {
   public:
-    CommandLine(linenumber_t n, const char* cstr) {
-// this wouldn't link, so doing it by hand below
-//    String::init();
-      buffer = NULL;
-      capacity = 0;
-      len = 0;
+    CommandLine(linenumber_t n, const char* cstr) : String() {
 
       _lineNumber = n;
       if (cstr) {
