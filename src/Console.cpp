@@ -513,7 +513,7 @@ LogCommand theLogCommand;
 class RemCommand : public Command {
   public:
     const char* getName() { return "rem"; }
-    const char* getHelp() { return ("just a remark"); }
+    const char* getHelp() { return ("Just a remark"); }
     void execute(Stream* c, uint8_t paramCount, char** params) {
     }
 };
