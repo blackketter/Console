@@ -95,6 +95,13 @@ void Console::idle() {
   if (toFlush) {
     flush();
   }
+
+  // idle commands
+  Command* idler = _commands;
+  while (idler) {
+    idler->idle();
+    idler = idler->next();
+  }
 };
 
 inline bool isSpace(char c) {

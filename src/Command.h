@@ -11,6 +11,8 @@ class Command {
     virtual const char* getHelp() = 0;
     void printError(Stream* c);
 
+    virtual void idle() {};
+
     Command* next() { return _next; }
     Command* prev() { return _prev; }
     void setNext(Command* c) { _next = c; }
