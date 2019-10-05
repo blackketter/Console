@@ -8,8 +8,6 @@
 
 #include "Commands/Commands.h"
 
-static Command* _commands = nullptr;
-
 Console* Console::_theConsole;
 
 Console::Console() {
@@ -24,8 +22,17 @@ void Console::begin() {
     _port = &Serial;
     Serial.begin(115200);
   }
+
   // this assumes all commands are added by their global static instance constructors
-  sortCommands();
+  Command::sortCommands();
+
+  // begin commands
+  Command* beginner = Command::first();
+  while (beginner) {
+    beginner->begin();
+    beginner = beginner->next();
+  }
+
 }
 
 void Console::idle() {
@@ -97,7 +104,7 @@ void Console::idle() {
   }
 
   // idle commands
-  Command* idler = _commands;
+  Command* idler = Command::first();
   while (idler) {
     idler->idle();
     idler = idler->next();
@@ -203,75 +210,18 @@ bool Console::executeCommandLine(Stream* output, const char* line) {
     commandLineIndex = 0;
   };
 
-  Command* currCommand = _commands;
-
   bool failure = false;
   if (paramCount) {
-    while (currCommand != nullptr) {
-      if (strcasecmp(currCommand->getName(), params[0]) == 0) {
-        // paramcount is the number of parameters after the name
-        currCommand->execute(output, paramCount-1, params);
-        break;
-      }
-      currCommand = currCommand->next();
-    }
-    if (currCommand == nullptr) {
+    Command* c = Command::getByName(params[0]);
+    if (c) {
+      c->execute(output, paramCount-1, params);
+    } else {
       failure = true;
       output->printf("Unknown Command: %s\n", params[0]);
-
     }
   }
   return failure;
 }
-
-void Console::addCommand(Command* command) {
-  if (_commands) {
-    _commands->setPrev(command);
-    command->setNext(_commands);
-  }
-  _commands = command;
-}
-
-void Console::sortCommands() {
-  Command* toSort = _commands->next();
-  _commands->setNext(nullptr);
-
-  toSort->setPrev(nullptr);
-
-  while (toSort) {
-    Command* sorted = _commands;
-    Command* next = toSort->next();
-    do {
-      // time to insert?
-      if (strcasecmp(sorted->getName(), toSort->getName()) > 0) {
-        toSort->setPrev(sorted->prev());
-        toSort->setNext(sorted);
-
-        Command* prev = sorted->prev();
-        sorted->setPrev(toSort);
-
-        // first in list
-        if (sorted == _commands) {
-          _commands = toSort;
-        } else {
-          prev->setNext(toSort);
-        }
-        break;
-      }
-      // last in list
-      if (sorted->next() == nullptr) {
-        sorted->setNext(toSort);
-        toSort->setPrev(sorted);
-        toSort->setNext(nullptr);
-        break;
-      } else {
-        sorted = sorted->next();
-      }
-    } while (sorted);
-
-    toSort = next;
-  }
-};
 
 int Console::available() {
   if (_port) {
@@ -455,131 +405,3 @@ void Console::printLog(Print* p) {
   }
 };
 
-// Some built-in commands
-////////////////// HelloCommand
-
-class HelloCommand : public Command {
-  public:
-    const char* getName() { return "hello"; }
-    const char* getHelp() { return "Greets you"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) { c->print("Hello world!\n"); }
-};
-
-HelloCommand theHelloCommand;
-
-////////////////// List Command
-class ListCommand : public Command {
-  public:
-    const char* getName() { return "list"; }
-    const char* getHelp() { return "Prints out listing of current program"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
-      CommandLine* line = Console::get()->getLines();
-      while (line) {
-        if (line->getNumber()) {
-          c->printf("%5d %s\n", line->getNumber(), line->c_str());
-        }
-        line = line->getNext();
-      }
-    }
-};
-ListCommand theListCommand;
-
-////////////////// Run Command
-class RunCommand : public Command {
-  public:
-    const char* getName() { return "run"; }
-    const char* getHelp() { return "Runs current program"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
-      CommandLine* line = Console::get()->getLines();
-      while (line) {
-        bool fail = Console::get()->executeCommandLine(c, line->c_str());
-        if (fail) {
-          break;
-        }
-        line = line->getNext();
-      }
-    }
-};
-RunCommand theRunCommand;
-
-////////////////// Log Command
-
-class LogCommand : public Command {
-  public:
-    const char* getName() { return "log"; }
-    const char* getHelp() { return ("Print out debug log"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
-      Console::get()->printLog(c);
-    }
-};
-
-LogCommand theLogCommand;
-
-////////////////// Rem Command
-
-class RemCommand : public Command {
-  public:
-    const char* getName() { return "rem"; }
-    const char* getHelp() { return ("Just a remark"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
-    }
-};
-
-RemCommand theRemCommand;
-
-
-////////////////// DebugCommand
-
-class DebugCommand : public Command {
-  public:
-    const char* getName() { return "debug"; }
-    const char* getHelp() { return ("0|1 - disable/enable debug output"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
-      if (paramCount == 1) {
-        bool debugState = atoi(params[1]);
-        Console::get()->debugEnable(debugState);
-      } else if (paramCount == 0) {
-        Console::get()->debugEnable(!Console::get()->debugEnabled());
-      }
-      c->printf("Debug: %s\n", Console::get()->debugEnabled() ? "on" : "off");
-    }
-};
-
-DebugCommand theDebugCommand;
-
-////////////////// HelpCommand
-
-class HelpCommand : public Command {
-  public:
-    const char* getName() { return "help"; }
-    const char* getHelp() { return "Prints out this help information"; }
-    void execute(Stream* c, uint8_t paramCount, char** params);
-};
-
-void HelpCommand::execute(Stream* c, uint8_t paramCount, char** params) {
-  Command* firstCommand = this;
-  while (firstCommand->prev()) {
-    firstCommand = firstCommand->prev();
-  }
-  c->print("Known Commands:\n");
-
-  Command* currCommand = firstCommand;
-  int commandLen = 0;
-  while (currCommand) {
-    int currLen = strlen(currCommand->getName());
-    if (currLen > commandLen) { commandLen = currLen; }
-    currCommand = currCommand->next();
-  }
-
-  currCommand = firstCommand;
-  while (currCommand) {
-    c->print("  ");
-    c->print(currCommand->getName());
-    for (int i = strlen(currCommand->getName()); i < commandLen + 3; i++) { c->write(' '); }
-    c->print(currCommand->getHelp());
-    c->write('\n');
-    currCommand = currCommand->next();
-  }
-}
-
-HelpCommand theHelpCommand;

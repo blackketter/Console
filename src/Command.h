@@ -11,15 +11,21 @@ class Command {
     virtual const char* getHelp() = 0;
     void printError(Stream* c);
 
+    virtual void begin() {};
     virtual void idle() {};
 
     Command* next() { return _next; }
-    Command* prev() { return _prev; }
     void setNext(Command* c) { _next = c; }
-    void setPrev(Command* c) { _prev = c; }
-  protected:
+
+    static Command* first() { return _first; }
+    static void addCommand(Command* c);
+    static Command* getByName(const char* n);
+    static void sortCommands();
+
+  private:
+    static void setFirst(Command* f) { _first = f; }
+    static Command* _first;
     Command* _next = nullptr;
-    Command* _prev = nullptr;
 };
 
 #endif

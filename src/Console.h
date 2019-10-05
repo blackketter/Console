@@ -24,9 +24,6 @@ class Console : public Stream {
 
     bool printDebug() { return _debugEnabled && (_commandLineLength == 0); }
 
-    static void addCommand(Command* command);
-    void sortCommands();
-
     // returns true for failure, false for success
     bool executeCommandLine(const char* line);
 
