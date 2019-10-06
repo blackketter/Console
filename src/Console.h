@@ -30,8 +30,7 @@ class Console : public Stream {
     // execute command line to another stream.  safe to pass nullptr for output if you don't care about the result
     bool executeCommandLine(Stream* output, const char* line);
 
-    CommandLine* getLines() { return _lines; }
-
+    Command* getLastCommand() { return _lastCommand; }
 // low level virtual functions
     int available();
     int read();
@@ -47,9 +46,6 @@ class Console : public Stream {
     void appendLog(const char* a, size_t size);
     static Console* get() { return _theConsole; }
   private:
-
-    CommandLine* _lines = nullptr;
-
     void debugPrefix(char* s);
 
     Stream* _port = nullptr;
@@ -65,6 +61,7 @@ class Console : public Stream {
     size_t _debugLogStart = 0;
     size_t _debugLogEnd = 0;
     static Console* _theConsole;
+    Command* _lastCommand = nullptr;
 };
 
 #endif

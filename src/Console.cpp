@@ -13,7 +13,6 @@ Console* Console::_theConsole;
 Console::Console() {
   _commandLine[0] = 0;
   _theConsole = this;
-  _lines = new CommandLine(0, "REM");
 }
 
 void Console::begin() {
@@ -36,6 +35,14 @@ void Console::begin() {
 }
 
 void Console::idle() {
+
+  // idle commands
+  Command* idler = Command::first();
+  while (idler) {
+    idler->idle(this);
+    idler = idler->next();
+  }
+
 // loopback (100 chars at a time, max)
   uint8_t i = 100;
   bool toFlush = false;
@@ -77,12 +84,8 @@ void Console::idle() {
         // ignore
       } else if (c == 3) {
         // control-c
-        if (_commandLineLength == 0) {
-          write('>');
-        }
-        write('\n');
-        _commandLine[0] = 0;
-        close();
+        println("Ctrl-C: Stopping");
+        Command::killAll();
       }  else {
         // ignore some characters (tab, extra chars past the max line length)
         if (c != '\t' || _commandLineLength < _maxCommandLineLength) {
@@ -101,13 +104,6 @@ void Console::idle() {
 
   if (toFlush) {
     flush();
-  }
-
-  // idle commands
-  Command* idler = Command::first();
-  while (idler) {
-    idler->idle();
-    idler = idler->next();
   }
 };
 
@@ -165,10 +161,10 @@ bool Console::executeCommandLine(Stream* output, const char* line) {
         if (strlen(&commandStart[commandLineIndex])) {
           CommandLine* commandLine = new CommandLine(n, &commandStart[commandLineIndex]);
           if (commandLine) {
-            _lines->addLine(commandLine);  // we always have a first line, a REMark
+            CommandLine::addLine(commandLine);  // we always have a first line, a REMark
           }
         } else {
-          CommandLine* del = _lines->removeLine(n);
+          CommandLine* del = CommandLine::removeLine(n);
           if (del) { delete del; }
         }
         // returns success
@@ -215,6 +211,7 @@ bool Console::executeCommandLine(Stream* output, const char* line) {
     Command* c = Command::getByName(params[0]);
     if (c) {
       c->execute(output, paramCount-1, params);
+      _lastCommand = c;
     } else {
       failure = true;
       output->printf("Unknown Command: %s\n", params[0]);

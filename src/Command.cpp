@@ -68,3 +68,11 @@ void Command::sortCommands() {
     toSort = next;
   }
 };
+
+void Command::killAll() {
+  Command* c = _first;
+  while (c) {
+    c->kill();
+    c = c->next();
+  }
+}

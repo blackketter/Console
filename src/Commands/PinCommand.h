@@ -62,7 +62,7 @@ class pinCommand : public Command {
       }
     }
 
-    void idle() override {
+    void idle(Stream* c) override {
       if (Uptime::millis() > lastBlink + blinkInterval) {
         lastBlink = Uptime::millis();
         blinkState = !blinkState;
