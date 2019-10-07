@@ -217,14 +217,15 @@ void HelpCommand::execute(Stream* c, uint8_t paramCount, char** params) {
 
 HelpCommand theHelpCommand;
 
-////////////////// Rem Command
+////////////////// Exit Command
 
 class ExitCommand : public Command {
   public:
     const char* getName() { return "exit"; }
     const char* getHelp() { return ("Close connection, if possible"); }
     void execute(Stream* c, uint8_t paramCount, char** params) {
-      close();
+      c->println("TODO - close connection");
+      //c->close();
     }
 };
 

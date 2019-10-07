@@ -1,7 +1,6 @@
 /*
   Minimal Console Example
  */
-
 #include "Console.h"
 
 Console console;
