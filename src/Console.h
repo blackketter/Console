@@ -35,13 +35,13 @@ class Console : public Stream {
 
     CommandLine* getLines() { return _lines; }
 
-// low level virtual functions
-    int available();
-    int read();
-    int peek();
-    void flush();
-    size_t write(uint8_t b);
-    size_t write(const uint8_t *buf, size_t size);
+    // low level virtual functions
+    int available() override;
+    int read() override;
+    int peek() override;
+    void flush() override;
+    size_t write(uint8_t b) override;
+    size_t write(const uint8_t *buf, size_t size) override;
 
     // debug logging
     void printLog();

@@ -3,6 +3,5 @@
 // Comment out any you do not want to include
 
 #include "Commands/i2cCommand.h"
-#include "Commands/FPSCommand.h"
 
 #endif
