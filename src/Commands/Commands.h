@@ -7,6 +7,9 @@
 #include "Commands/ConsoleCommands.h"
 #include "Commands/FileCommands.h"
 #include "Commands/i2cCommand.h"
+
+// These are disabled because they depend on the Clock library
+//#include "Commands/FPSCommand.h"
 //#include "Commands/InfoCommand.h"
 //#include "Commands/PinCommand.h"
 
