@@ -1,7 +1,7 @@
 #ifndef _WiFiConsole_
 #define _WiFiConsole_
 
-#if defined(ESP32) || defined(ESP8266)
+#if defined(ESP32) || defined(ESP8266) || defined(ARDUINO_SAMD_NANO_33_IOT)
 
 #include "Console.h"
 

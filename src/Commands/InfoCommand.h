@@ -2,7 +2,6 @@
 #define _InfoCommand_
 #include "Command.h"
 
-
 uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
     uint32_t stackTop;
     uint32_t heapTop;

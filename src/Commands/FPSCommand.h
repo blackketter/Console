@@ -8,7 +8,7 @@ class FPSCommand : public Command {
     const char* getHelp() { return "toggle displaying frame rate in fps"; }
     void execute(Stream* c, uint8_t paramCount, char** params) {
       enable = !enable;
-      c->printf("FPS display %s\n", enable ? "enabled" : "disabled");
+      pprintf(c,"FPS display %s\n", enable ? "enabled" : "disabled");
       cons = c;
     }
     void newFrame() {
@@ -20,7 +20,7 @@ class FPSCommand : public Command {
       if (now - lastTime > 1000) {
        _lastFPS = ((float)(frames*1000))/(now - lastTime);
         if (enable && cons) {
-          cons->printf("FPS: %.2f (Max frame: %dms, Min frame: %dms, Max idle: %dms)\n", _lastFPS, (int)maxFrame, (int)minFrame, (int)maxIdle);
+          pprintf(cons, "FPS: %.2f (Max frame: %dms, Min frame: %dms, Max idle: %dms)\n", _lastFPS, (int)maxFrame, (int)minFrame, (int)maxIdle);
         }
         lastTime = now;
         frames = 0;
