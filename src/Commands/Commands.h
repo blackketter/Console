@@ -11,5 +11,6 @@
 #include "Commands/i2cCommand.h"
 #include "Commands/InfoCommand.h"
 #include "Commands/PinCommand.h"
+#include "Commands/SerialCommand.h"
 
 #endif

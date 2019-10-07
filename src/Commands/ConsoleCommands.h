@@ -37,7 +37,12 @@ class RunCommand : public Command {
     const char* getName() { return "run"; }
     const char* getHelp() { return "Runs current program"; }
     void execute(Stream* c, uint8_t paramCount, char** params) {
-      _nextLine = CommandLine::first();
+      // todo - initialize running state (variables, etc.)?
+      if (paramCount == 1) {
+        gotoLine(atoi(params[1]));
+      } else {
+        _nextLine = CommandLine::first();
+      }
     }
     void kill() override {
       _nextLine = nullptr;
@@ -83,6 +88,7 @@ class GotoCommand : public Command {
     const char* getName() { return "goto"; }
     const char* getHelp() { return "<line number> - Jump to line"; }
     void execute(Stream* c, uint8_t paramCount, char** params) {
+      theRunCommand.execute(c,paramCount,params);
       if (paramCount == 1) {
         theRunCommand.gotoLine(atoi(params[1]));
       } else {
@@ -224,7 +230,8 @@ class ExitCommand : public Command {
     const char* getName() { return "exit"; }
     const char* getHelp() { return ("Close connection, if possible"); }
     void execute(Stream* c, uint8_t paramCount, char** params) {
-      close();
+      c->println("TODO - close connection");
+      //close();
     }
 };
 
