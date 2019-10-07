@@ -24,24 +24,20 @@ class Console : public Stream {
 
     bool printDebug() { return _debugEnabled && (_commandLineLength == 0); }
 
-    static void addCommand(Command* command);
-    void sortCommands();
-
     // returns true for failure, false for success
     bool executeCommandLine(const char* line);
 
     // execute command line to another stream.  safe to pass nullptr for output if you don't care about the result
     bool executeCommandLine(Stream* output, const char* line);
 
-    CommandLine* getLines() { return _lines; }
-
-    // low level virtual functions
-    int available() override;
-    int read() override;
-    int peek() override;
-    void flush() override;
-    size_t write(uint8_t b) override;
-    size_t write(const uint8_t *buf, size_t size) override;
+    Command* getLastCommand() { return _lastCommand; }
+// low level virtual functions
+    int available();
+    int read();
+    int peek();
+    void flush();
+    size_t write(uint8_t b);
+    size_t write(const uint8_t *buf, size_t size);
 
     // debug logging
     void printLog();
@@ -50,9 +46,6 @@ class Console : public Stream {
     void appendLog(const char* a, size_t size);
     static Console* get() { return _theConsole; }
   private:
-
-    CommandLine* _lines = nullptr;
-
     void debugPrefix(char* s);
 
     Stream* _port = nullptr;
@@ -68,6 +61,7 @@ class Console : public Stream {
     size_t _debugLogStart = 0;
     size_t _debugLogEnd = 0;
     static Console* _theConsole;
+    Command* _lastCommand = nullptr;
 };
 
 #endif

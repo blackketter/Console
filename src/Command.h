@@ -9,15 +9,31 @@ class Command {
     virtual void execute(Stream* c, uint8_t paramCount, char** params) = 0;
     virtual const char* getName() = 0;
     virtual const char* getHelp() = 0;
-    void printError(Stream* c);
 
+    virtual void begin() {};
+    virtual void idle(Stream* c) {};
+
+    // commands can continue running after execute
+    virtual bool isRunning() { return false; };
+    virtual void kill() {};
+
+    // command list management
     Command* next() { return _next; }
-    Command* prev() { return _prev; }
-    void setNext(Command* c) { _next = c; }
-    void setPrev(Command* c) { _prev = c; }
-  protected:
+    static Command* first() { return _first; }
+    static void addCommand(Command* c);
+    static Command* getByName(const char* n);
+    static void sortCommands();
+
+    // utility methods
+    void printError(Stream* c);
+    static void killAll();
+
+  private:
     Command* _next = nullptr;
-    Command* _prev = nullptr;
+
+    void setNext(Command* c) { _next = c; }
+    static void setFirst(Command* f) { _first = f; }
+    static Command* _first;
 };
 
 #endif
