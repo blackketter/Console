@@ -71,8 +71,14 @@ class RunCommand : public Command {
 
     void gotoLine(linenumber_t g) {
       CommandLine* line = CommandLine::getLine(g);
-      if (line) {
-        _nextLine = line;
+      _nextLine = line;
+    }
+
+    linenumber_t nextLineNumber() {
+      if (_nextLine) {
+        return _nextLine->getNumber();
+      } else {
+        return NO_LINENUMBER;
       }
     }
 
@@ -81,6 +87,17 @@ class RunCommand : public Command {
     Command* _currCommand = nullptr;
 };
 RunCommand theRunCommand;
+
+////////////////// End Command
+class EndCommand : public Command {
+  public:
+    const char* getName() { return "end"; }
+    const char* getHelp() { return "Ends program"; }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+        theRunCommand.gotoLine(NO_LINENUMBER);
+    }
+};
+EndCommand theEndCommand;
 
 ////////////////// Goto Command
 class GotoCommand : public Command {
@@ -97,6 +114,57 @@ class GotoCommand : public Command {
     }
 };
 GotoCommand theGotoCommand;
+
+
+////////////////// Gosub Command
+class GosubCommand : public Command {
+  public:
+    const char* getName() { return "gosub"; }
+    const char* getHelp() { return "<line number> - Go to subroutine"; }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      if (paramCount == 1) {
+        linenumber_t returnLineNumber = theRunCommand.nextLineNumber();
+        linenumber_t subLineNumber = atoi(params[1]);
+
+        if (subLineNumber != NO_LINENUMBER) {
+          if (_currDepth >= MAX_GOSUB_DEPTH) {
+            subLineNumber = NO_LINENUMBER;
+          } else {
+            _return[_currDepth] = returnLineNumber;
+            _currDepth++;
+          }
+        }
+        theRunCommand.gotoLine(subLineNumber);
+      } else {
+        printError(c);
+      }
+    }
+
+    void returnSub() {
+      linenumber_t returnLineNumber = NO_LINENUMBER;
+      if (_currDepth) {
+        _currDepth--;
+        returnLineNumber = _return[_currDepth];
+      }
+      theRunCommand.gotoLine(returnLineNumber);
+    }
+  private:
+    static const uint8_t MAX_GOSUB_DEPTH = 5;
+    linenumber_t _return[MAX_GOSUB_DEPTH];
+    uint8_t _currDepth = 0;
+};
+GosubCommand theGosubCommand;
+
+////////////////// Return Command
+class ReturnCommand : public Command {
+  public:
+    const char* getName() { return "return"; }
+    const char* getHelp() { return ("Return from subroutine"); }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      theGosubCommand.returnSub();
+    }
+};
+ReturnCommand theReturnCommand;
 
 ////////////////// Log Command
 
@@ -222,19 +290,5 @@ void HelpCommand::execute(Stream* c, uint8_t paramCount, char** params) {
 }
 
 HelpCommand theHelpCommand;
-
-////////////////// Exit Command
-
-class ExitCommand : public Command {
-  public:
-    const char* getName() { return "exit"; }
-    const char* getHelp() { return ("Close connection, if possible"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
-      c->println("TODO - close connection");
-      //c->close();
-    }
-};
-
-ExitCommand theExitCommand;
 
 #endif

@@ -3,6 +3,7 @@
 #include "Arduino.h"
 
 typedef uint16_t linenumber_t;
+const linenumber_t NO_LINENUMBER = 65535;
 
 class CommandLine : public String {
   public:
@@ -61,6 +62,9 @@ class CommandLine : public String {
     CommandLine* getNext() { return _next;}
 
     static CommandLine* getLine(linenumber_t n) {
+      if (n == NO_LINENUMBER) {
+        return nullptr;
+      }
       CommandLine* cur = _first;
       while (cur) {
         if (cur->getNumber() == n) {
