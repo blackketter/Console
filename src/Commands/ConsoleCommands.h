@@ -115,7 +115,6 @@ class GotoCommand : public Command {
 };
 GotoCommand theGotoCommand;
 
-
 ////////////////// Gosub Command
 class GosubCommand : public Command {
   public:
@@ -165,6 +164,17 @@ class ReturnCommand : public Command {
     }
 };
 ReturnCommand theReturnCommand;
+
+////////////////// Clear Command
+class ClearCommand : public Command {
+  public:
+    const char* getName() { return "clear"; }
+    const char* getHelp() { return ("Erase the program"); }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      CommandLine::clearAll();
+    }
+};
+ClearCommand theClearCommand;
 
 ////////////////// Log Command
 
@@ -255,7 +265,7 @@ DebugCommand theDebugCommand;
 class HelpCommand : public Command {
   public:
     const char* getName() { return "help"; }
-    const char* getHelp() { return " <command> - Prints out this help"; }
+    const char* getHelp() { return "<command> - Prints out this help"; }
     void execute(Stream* c, uint8_t paramCount, char** params);
 };
 

@@ -82,13 +82,25 @@ class CommandLine : public String {
       CommandLine* last = nullptr;
       while (cur) {
         if (cur->getNumber() == n) {
-          last->setNext(cur->getNext());
+          if (cur == _first) {
+            _first = cur->getNext();
+          } else {
+            last->setNext(cur->getNext());
+          }
           return cur;
         }
         last = cur;
         cur = cur->getNext();
       }
       return nullptr;
+    }
+
+    static void clearAll() {
+      while (_first) {
+        CommandLine* next = _first->getNext();
+        delete _first;
+        _first = next;
+      }
     }
   private:
     void setNext(CommandLine* next) { _next = next; }
