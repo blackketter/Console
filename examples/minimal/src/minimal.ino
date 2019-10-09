@@ -5,6 +5,11 @@
 
 Console console;
 
+// this is optional if you want to use the FPSCommand
+#include "Console/FPSCommand.h"
+FPSCommand theFPSCommand;
+
+
 void setup() {
   console.begin();
 
@@ -15,5 +20,10 @@ void setup() {
 
 void loop() {
   console.idle();
+
+
+  // each time you draw a new frame you can tell the FPSCommand to note it for statistics
+  theFPSCommand.newFrame();
+
 }
 
