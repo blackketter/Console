@@ -6,7 +6,11 @@ class pinCommand : public Command {
   public:
     pinCommand() { for (uint8_t i = 0; i < maxPins; i++) { blinking[i] = 0; } }
     const char* getName() { return "pin"; }
-    const char* getHelp() { return "<on|off|blink|read|input|pullup|awrite val|aread> <pin numbers...> - Set or read a pin"; }
+    const char* getHelp() { return "<on|off|blink|read|input|pullup|"
+#if !defined(ESP32)
+    "awrite val|"
+#endif
+    "aread> <pin numbers...> - Set or read a pin"; }
     void printState(Stream* c, uint8_t pin) {
       c->printf("  Pin: %d %s\n", pin, digitalRead(pin) ? "HIGH" : "LOW");
     }
@@ -45,6 +49,7 @@ class pinCommand : public Command {
           } else if (strcasecmp(command, "aread") == 0) {
             uint8_t val = analogRead(pin);
             c->printf("  Pin: %d Analog: %d\n", pin, val);
+#if !defined(ESP32)
           } else if (strcasecmp(command, "awrite") == 0) {
             uint8_t val = pin;
             i++;
@@ -52,6 +57,7 @@ class pinCommand : public Command {
             analogWrite(pin, val);
             c->printf("  Pin: %d  Analog: %d\n", pin, val);
             blink(pin, 0);
+#endif
           } else if (strcasecmp(command, "blink") == 0) {
             blink(pin, 1);
             c->printf("  Pin: %d BLINKING\n", pin);

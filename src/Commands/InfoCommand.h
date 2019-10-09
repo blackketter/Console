@@ -28,11 +28,6 @@ void printInfo(Print* p) {
   p->printf("Compiled: " __DATE__ " " __TIME__ "\n");
   p->printf("Free ram: %10d\n", FreeMem());
   p->printf("Uptime: %f\n", Uptime::micros()/1000000.0);
-
-  uint32_t rtcMillis = (uint32_t)((clock.getRTCMicros()%1000000)/1000);
-  uint32_t clockMillis = clock.fracMillis();
-
-  p->printf("RTC millis:%03d, clock: %03d, diff: %d\n", (uint32_t)rtcMillis, (uint32_t)clockMillis, (int)rtcMillis - (int)clockMillis);
 }
 
 

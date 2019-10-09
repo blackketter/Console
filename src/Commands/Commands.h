@@ -9,9 +9,9 @@
 #include "Commands/i2cCommand.h"
 #include "Commands/SerialCommand.h"
 
-// These are disabled because they depend on the Clock library
-//#include "Commands/FPSCommand.h"
-//#include "Commands/InfoCommand.h"
-//#include "Commands/PinCommand.h"
+// These depend on the Clock library
+#include "Commands/FPSCommand.h"
+#include "Commands/InfoCommand.h"
+#include "Commands/PinCommand.h"
 
 #endif
