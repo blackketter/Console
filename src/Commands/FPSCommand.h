@@ -41,7 +41,7 @@ class FPSCommand : public Command {
 
     }
 
-		float lastFPS() { return _lastFPS; }
+  float lastFPS() { return _lastFPS; }
 
   private:
     bool enable = false;
@@ -56,7 +56,5 @@ class FPSCommand : public Command {
     millis_t lastIdle = 0;
     millis_t maxIdle = 0;
 };
-
-extern FPSCommand theFPSCommand;
 
 #endif
