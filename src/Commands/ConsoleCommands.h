@@ -37,7 +37,12 @@ class RunCommand : public Command {
     const char* getName() { return "run"; }
     const char* getHelp() { return "Runs current program"; }
     void execute(Stream* c, uint8_t paramCount, char** params) {
-      _nextLine = CommandLine::first();
+      // todo - initialize running state (variables, etc.)?
+      if (paramCount == 1) {
+        gotoLine(atoi(params[1]));
+      } else {
+        _nextLine = CommandLine::first();
+      }
     }
     void kill() override {
       _nextLine = nullptr;
@@ -66,8 +71,14 @@ class RunCommand : public Command {
 
     void gotoLine(linenumber_t g) {
       CommandLine* line = CommandLine::getLine(g);
-      if (line) {
-        _nextLine = line;
+      _nextLine = line;
+    }
+
+    linenumber_t nextLineNumber() {
+      if (_nextLine) {
+        return _nextLine->getNumber();
+      } else {
+        return NO_LINENUMBER;
       }
     }
 
@@ -77,12 +88,24 @@ class RunCommand : public Command {
 };
 RunCommand theRunCommand;
 
+////////////////// End Command
+class EndCommand : public Command {
+  public:
+    const char* getName() { return "end"; }
+    const char* getHelp() { return "Ends program"; }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+        theRunCommand.gotoLine(NO_LINENUMBER);
+    }
+};
+EndCommand theEndCommand;
+
 ////////////////// Goto Command
 class GotoCommand : public Command {
   public:
     const char* getName() { return "goto"; }
     const char* getHelp() { return "<line number> - Jump to line"; }
     void execute(Stream* c, uint8_t paramCount, char** params) {
+      theRunCommand.execute(c,paramCount,params);
       if (paramCount == 1) {
         theRunCommand.gotoLine(atoi(params[1]));
       } else {
@@ -91,6 +114,67 @@ class GotoCommand : public Command {
     }
 };
 GotoCommand theGotoCommand;
+
+////////////////// Gosub Command
+class GosubCommand : public Command {
+  public:
+    const char* getName() { return "gosub"; }
+    const char* getHelp() { return "<line number> - Go to subroutine"; }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      if (paramCount == 1) {
+        linenumber_t returnLineNumber = theRunCommand.nextLineNumber();
+        linenumber_t subLineNumber = atoi(params[1]);
+
+        if (subLineNumber != NO_LINENUMBER) {
+          if (_currDepth >= MAX_GOSUB_DEPTH) {
+            subLineNumber = NO_LINENUMBER;
+          } else {
+            _return[_currDepth] = returnLineNumber;
+            _currDepth++;
+          }
+        }
+        theRunCommand.gotoLine(subLineNumber);
+      } else {
+        printError(c);
+      }
+    }
+
+    void returnSub() {
+      linenumber_t returnLineNumber = NO_LINENUMBER;
+      if (_currDepth) {
+        _currDepth--;
+        returnLineNumber = _return[_currDepth];
+      }
+      theRunCommand.gotoLine(returnLineNumber);
+    }
+  private:
+    static const uint8_t MAX_GOSUB_DEPTH = 5;
+    linenumber_t _return[MAX_GOSUB_DEPTH];
+    uint8_t _currDepth = 0;
+};
+GosubCommand theGosubCommand;
+
+////////////////// Return Command
+class ReturnCommand : public Command {
+  public:
+    const char* getName() { return "return"; }
+    const char* getHelp() { return ("Return from subroutine"); }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      theGosubCommand.returnSub();
+    }
+};
+ReturnCommand theReturnCommand;
+
+////////////////// Clear Command
+class ClearCommand : public Command {
+  public:
+    const char* getName() { return "clear"; }
+    const char* getHelp() { return ("Erase the program"); }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      CommandLine::clearAll();
+    }
+};
+ClearCommand theClearCommand;
 
 ////////////////// Log Command
 
@@ -181,7 +265,7 @@ DebugCommand theDebugCommand;
 class HelpCommand : public Command {
   public:
     const char* getName() { return "help"; }
-    const char* getHelp() { return " <command> - Prints out this help"; }
+    const char* getHelp() { return "<command> - Prints out this help"; }
     void execute(Stream* c, uint8_t paramCount, char** params);
 };
 
@@ -216,6 +300,4 @@ void HelpCommand::execute(Stream* c, uint8_t paramCount, char** params) {
 }
 
 HelpCommand theHelpCommand;
-
-
 #endif

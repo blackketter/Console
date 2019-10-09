@@ -8,19 +8,29 @@ class FPSCommand : public Command {
     const char* getHelp() { return "toggle displaying frame rate in fps"; }
     void execute(Stream* c, uint8_t paramCount, char** params) {
       enable = !enable;
-      pprintf(c,"FPS display %s\n", enable ? "enabled" : "disabled");
-      cons = c;
+      c->printf("FPS display %s\n", enable ? "enabled" : "disabled");
     }
+
     void newFrame() {
-      frames++;
       millis_t now = Uptime::millis();
       millis_t frameDur = now - lastFrame;
       if (frameDur > maxFrame) { maxFrame = frameDur; }
       if (frameDur < minFrame) { minFrame = frameDur; }
+
+      frames++;
+      lastFrame = now;
+    }
+
+    void idle(Stream* c) override {
+      millis_t now = Uptime::millis();
+      millis_t idleDur = now - lastIdle;
+      if (idleDur > maxIdle) { maxIdle = idleDur; }
+      lastIdle = now;
+
       if (now - lastTime > 1000) {
        _lastFPS = ((float)(frames*1000))/(now - lastTime);
-        if (enable && cons) {
-          pprintf(cons, "FPS: %.2f (Max frame: %dms, Min frame: %dms, Max idle: %dms)\n", _lastFPS, (int)maxFrame, (int)minFrame, (int)maxIdle);
+        if (enable) {
+          c->printf("FPS: %.2f (Max frame: %dms, Min frame: %dms, Max idle: %dms)\n", _lastFPS, (int)maxFrame, (int)minFrame, (int)maxIdle);
         }
         lastTime = now;
         frames = 0;
@@ -28,17 +38,10 @@ class FPSCommand : public Command {
         minFrame = 10000;
         maxIdle = 0;
       }
-      lastFrame = now;
+
     }
 
-    void idled() {
-      millis_t now = Uptime::millis();
-      millis_t idleDur = now - lastIdle;
-      if (idleDur > maxIdle) { maxIdle = idleDur; }
-      lastIdle = now;
-    }
-
-		float lastFPS() { return _lastFPS; }
+  float lastFPS() { return _lastFPS; }
 
   private:
     bool enable = false;
@@ -52,7 +55,6 @@ class FPSCommand : public Command {
 
     millis_t lastIdle = 0;
     millis_t maxIdle = 0;
-    Stream* cons = nullptr;
 };
 
 #endif
