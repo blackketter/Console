@@ -2,6 +2,9 @@
 #define _InfoCommand_
 #include "Command.h"
 
+// todo:
+//      c->printf("  Free Heap:   %d\n", ESP.getFreeHeap());
+
 uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
     uint32_t stackTop;
     uint32_t heapTop;
@@ -19,6 +22,7 @@ uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
 }
 
 void printInfo(Print* p) {
+  Clock clock;
   char string[100];
   clock.longTime(string);
   p->printf("Time: %s\n", string);
