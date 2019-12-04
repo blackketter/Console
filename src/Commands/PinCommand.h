@@ -46,12 +46,17 @@ class pinCommand : public Command {
             uint8_t val = analogRead(pin);
             c->printf("  Pin: %d Analog: %d\n", pin, val);
           } else if (strcasecmp(command, "awrite") == 0) {
+// TODO: ESP32 needs analogWrite()
+#if defined(ESP32)
+            c->println("ESP32 doesn't support analogWrite() yet");
+#else
             uint8_t val = pin;
             i++;
             pin = atoi(params[i]);
             analogWrite(pin, val);
             c->printf("  Pin: %d  Analog: %d\n", pin, val);
             blink(pin, 0);
+#endif
           } else if (strcasecmp(command, "blink") == 0) {
             blink(pin, 1);
             c->printf("  Pin: %d BLINKING\n", pin);

@@ -25,7 +25,7 @@ class SerialCommand : public Command {
 #if defined(ESP32)
       _serialPort = new SoftwareSerial();
       if (_serialPort) {
-        _serialPort->begin(speed, rx, tx);
+        _serialPort->begin(speed, SWSERIAL_8N1, rx, tx);
 #else
       _serialPort = new SoftwareSerial(rx,tx,false);
       if (_serialPort) {
