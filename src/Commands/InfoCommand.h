@@ -28,10 +28,19 @@ void printInfo(Print* p) {
 
 #if defined(ARDUINO_BOARD)
   board = ARDUINO_BOARD;
+
 #elif defined(BOARD_NAME)
   board = BOARD_NAME
+
 #elif defined(TEENSY40)
   board = "Teensy 4.0";
+
+#elif defined(TEENSY36)
+  board = "Teensy 3.6";
+
+#elif defined(TEENSY35)
+  board = "Teensy 3.5";
+
 #elif defined(TEENSY31)
 
 #if defined(__MK20DX256__)
@@ -42,6 +51,7 @@ void printInfo(Print* p) {
 
 #else
 #warning Unknown board for InfoCommand
+
 #endif
 
   p->printf("Board: %s\n", board);
