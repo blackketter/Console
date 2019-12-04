@@ -3,6 +3,8 @@
 #include "Command.h"
 
 Clock theClock;
+// todo:
+//      c->printf("  Free Heap:   %d\n", ESP.getFreeHeap());
 
 uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
     uint32_t stackTop;
@@ -46,7 +48,7 @@ void printInfo(Print* p) {
   p->printf("Compiled: " __DATE__ " " __TIME__ "\n");
   p->printf("Free ram: %10d\n", FreeMem());
   p->printf("Uptime: %f\n", Uptime::micros()/1000000.0);
-  p->printf("CPU Speed: %d\n", F_CPU);
+  p->printf("CPU Speed: %d\n", (int)F_CPU);
 
   char string[100];
   theClock.longTime(string);
