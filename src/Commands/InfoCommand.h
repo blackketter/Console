@@ -2,7 +2,6 @@
 #define _InfoCommand_
 #include "Command.h"
 
-Clock theClock;
 // todo:
 //      c->printf("  Free Heap:   %d\n", ESP.getFreeHeap());
 
@@ -23,6 +22,7 @@ uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
 }
 
 void printInfo(Print* p) {
+  Clock theClock;
 
   const char* board = "Unknown";
 

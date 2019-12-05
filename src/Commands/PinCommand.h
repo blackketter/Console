@@ -1,6 +1,7 @@
 #ifndef _PinCommand_
 #define _PinCommand_
 #include "Command.h"
+#include "Clock.h"
 
 class pinCommand : public Command {
   public:

@@ -8,6 +8,7 @@ class DateCommand : public Command {
     const char* getName() { return "date"; }
     const char* getHelp() { return "<year> <month> <day> <hour> <minute> <second> - Print or Set Date"; }
     void execute(Stream* c, uint8_t paramCount, char** params) {
+      Clock theClock;
       int p = paramCount;
       uint16_t year = 0;
       uint8_t month = 1;
@@ -22,11 +23,11 @@ class DateCommand : public Command {
       if (p>4) { minute = atoi(params[5]); }
       if (p>5) { second = atoi(params[6]); }
       if (year && month && day) {
-        clock.setDateTime(year,month,day,hour,minute,second);
+        theClock.setDateTime(year,month,day,hour,minute,second);
       }
-      clock.longDate(*c);
+      theClock.longDate(*c);
       c->print(" ");
-      clock.longTime(*c);
+      theClock.longTime(*c);
       c->println();
     }
 };
