@@ -20,7 +20,18 @@ class SerialCommand : public Command {
       if (paramCount == 3) {
         speed = atoi(params[3]);
       }
-      openSerial(c,rx,tx,speed);
+#if defined(ESP32)
+      _serialPort = new SoftwareSerial();
+      if (_serialPort) {
+        _serialPort->begin(speed, rx, tx);
+#else
+      _serialPort = new SoftwareSerial(rx,tx,false);
+      if (_serialPort) {
+        _serialPort->begin(speed);
+#endif
+      } else {
+        c->println("Error opening serial port");
+      }
     }
 
     void idle(Stream* c) override {

@@ -22,16 +22,55 @@ uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
 }
 
 void printInfo(Print* p) {
-  Clock clock;
-  char string[100];
-  clock.longTime(string);
-  p->printf("Time: %s\n", string);
-  clock.longDate(string);
-  p->printf("Date: %s\n", string);
+  Clock theClock;
 
+  const char* board = "Unknown";
+
+#if defined(ARDUINO_BOARD)
+  board = ARDUINO_BOARD;
+
+#elif defined(BOARD_NAME)
+  board = BOARD_NAME
+
+#elif defined(TEENSY40)
+  board = "Teensy 4.0";
+
+#elif defined(TEENSY36)
+  board = "Teensy 3.6";
+
+#elif defined(TEENSY35)
+  board = "Teensy 3.5";
+
+#elif defined(TEENSY31)
+
+#if defined(__MK20DX256__)
+  board = "Teensy LC";
+#else
+  board = "Teensy 3.1/3.2";
+#endif
+
+#else
+#warning Unknown board for InfoCommand
+
+#endif
+
+  p->printf("Board: %s\n", board);
   p->printf("Compiled: " __DATE__ " " __TIME__ "\n");
   p->printf("Free ram: %10d\n", FreeMem());
   p->printf("Uptime: %f\n", Uptime::micros()/1000000.0);
+  p->printf("CPU Speed: %d\n", (int)F_CPU);
+
+  char string[100];
+  theClock.longTime(string);
+  p->printf("Time: %s\n", string);
+  theClock.longDate(string);
+  p->printf("Date: %s\n", string);
+
+
+  uint32_t clockMillis = theClock.fracMillis();
+
+  uint32_t rtcMillis = (uint32_t)((theClock.getRTCMicros()%1000000)/1000);
+  p->printf("RTC millis:%03d, clock: %03d, diff: %d\n", (uint32_t)rtcMillis, (uint32_t)clockMillis, (int)rtcMillis - (int)clockMillis);
 }
 
 
