@@ -17,6 +17,9 @@ class Command {
     virtual bool isRunning() { return false; };
     virtual void kill() {};
 
+    // commands can consume input
+    virtual bool isReading() { return false; };
+
     // command list management
     Command* next() { return _next; }
     static Command* first() { return _first; }
