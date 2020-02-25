@@ -35,12 +35,17 @@ void Console::begin() {
 }
 
 void Console::idle() {
-
   // idle commands
   Command* idler = Command::first();
   while (idler) {
     idler->idle(this);
     idler = idler->next();
+  }
+
+
+  // bail before command line parsing if running command is reading input
+  if (_lastCommand && _lastCommand->isRunning() && _lastCommand->isReading()) {
+    return;
   }
 
 // loopback (100 chars at a time, max)
@@ -87,8 +92,9 @@ void Console::idle() {
         println("Ctrl-C: Stopping");
         Command::killAll();
       }  else {
-        // ignore some characters (tab, extra chars past the max line length)
-        if (c != '\t' || _commandLineLength < _maxCommandLineLength) {
+        // ignore some characters (extra chars past the max line length, tab)
+        if ((_commandLineLength < _maxCommandLineLength) &&
+            (c != '\t')) {
           // show a prompt
           if (_commandLineLength == 0) {
             write('>');
@@ -214,6 +220,7 @@ bool Console::executeCommandLine(Stream* output, const char* line) {
       _lastCommand = c;
     } else {
       failure = true;
+      _lastCommand = nullptr;
       output->printf("Unknown Command: %s\n", params[0]);
     }
   }

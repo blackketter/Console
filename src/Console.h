@@ -52,9 +52,9 @@ class Console : public Stream {
 
     bool _debugEnabled = true;
 
-    static const int _maxCommandLineLength = 100;  // todo: fixme
+    static const uint32_t _maxCommandLineLength = 100;  // todo: fixme
     char _commandLine[_maxCommandLineLength];
-    uint8_t _commandLineLength = 0;
+    uint32_t _commandLineLength = 0;
 
     static const size_t _debugLogSize = 2000;
     char _debugLog[_debugLogSize]; // log of recent debug output
