@@ -31,7 +31,6 @@ void Console::begin() {
     beginner->begin();
     beginner = beginner->next();
   }
-
 }
 
 void Console::idle() {
@@ -42,12 +41,11 @@ void Console::idle() {
     idler = idler->next();
   }
 
-
   // bail before command line parsing if running command is reading input
   if (_lastCommand && _lastCommand->isRunning() && _lastCommand->isReading()) {
     return;
   }
-
+  
 // loopback (100 chars at a time, max)
   uint8_t i = 100;
   bool toFlush = false;
@@ -66,14 +64,7 @@ void Console::idle() {
           _commandLine[_commandLineLength] = 0;
           write(8); write(' '); write(8);
         }
-        // get rid of prompt
-        if (_commandLineLength == 0) {
-          write(8); write(' '); write(8);
-        }
       } else if (c == '\r') {
-        if (_commandLineLength == 0) {
-          write('>');
-        }
         // new line
         write(c);
         write('\n');
@@ -83,6 +74,8 @@ void Console::idle() {
         if (fail) {
           executeCommandLine("help");
         }
+
+
       } else if (c == '\n') {
         // ignore
       } else if (c == 0) {
@@ -95,10 +88,6 @@ void Console::idle() {
         // ignore some characters (extra chars past the max line length, tab)
         if ((_commandLineLength < _maxCommandLineLength) &&
             (c != '\t')) {
-          // show a prompt
-          if (_commandLineLength == 0) {
-            write('>');
-          }
           _commandLine[_commandLineLength] = c;
           _commandLineLength++;
           _commandLine[_commandLineLength] = 0;
@@ -112,6 +101,11 @@ void Console::idle() {
     flush();
   }
 };
+
+void Console::prompt() {
+  if (thePromptCommand.enabled())
+    print(thePromptCommand.getPrompt());
+}
 
 inline bool isSpace(char c) {
   return c == ' ' || c == '\t' || c == '\r';

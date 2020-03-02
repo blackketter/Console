@@ -9,7 +9,7 @@ class HelloCommand : public Command {
   public:
     const char* getName() { return "hello"; }
     const char* getHelp() { return "Greets you"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) { c->print("Hello world!\n"); }
+    void execute(Stream* c, uint8_t paramCount, char** params) { c->print("Hello Console!\n"); }
 };
 
 HelloCommand theHelloCommand;
@@ -176,6 +176,24 @@ class ClearCommand : public Command {
 };
 ClearCommand theClearCommand;
 
+////////////////// Print Command
+class PrintCommand : public Command {
+  public:
+    const char* getName() { return "print"; }
+    const char* getHelp() { return ("<...> - Print data"); }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      
+      for (uint8_t i = 1; i <= paramCount; i++ ) {
+        if (i!=1) { 
+          c->write(' ');
+        }
+        c->print(params[i]);
+      }
+      c->write('\n');
+    }
+};
+PrintCommand thePrintCommand;
+
 ////////////////// Log Command
 
 class LogCommand : public Command {
@@ -260,6 +278,30 @@ class DebugCommand : public Command {
 
 DebugCommand theDebugCommand;
 
+////////////////// HelpCommand
+
+class PromptCommand : public Command {
+  public:
+    const char* getName() { return "prompt"; }
+    const char* getHelp() { return ("<0|1> - disable/enable command prompt"); }
+    void execute(Stream* c, uint8_t paramCount, char** params) {
+      if (paramCount == 1) {
+        setEnabled(atoi(params[1]));
+      } else if (paramCount == 0) {
+        setEnabled(!enabled());
+      }
+      c->printf("Prompt: %s\n", enabled() ? "on" : "off");
+    }
+    bool enabled() { return _enabled; }
+    void setEnabled( bool e ) { _enabled = e; }
+    const char*  getPrompt() { return ">"; }
+  private:
+    bool _enabled = true;
+    
+};
+
+PromptCommand thePromptCommand;
+  
 ////////////////// HelpCommand
 
 class HelpCommand : public Command {
