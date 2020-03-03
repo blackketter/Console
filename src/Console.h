@@ -8,14 +8,11 @@
 
 class Console : public Stream {
   public:
-    Console();
-    ~Console();
-    Console(Stream* port);
     virtual void begin();
     virtual void idle();
     virtual void close() { }
     Stream* getPort() { return _port; }
-    void setPort(Stream* port) { _port = port; }
+    Stream* setPort(Stream* port) { Stream* old = _port; _port = port; return old; }
 
     void debugf(const char* format, ...);
     void debugln(const char* s);
@@ -27,6 +24,9 @@ class Console : public Stream {
 
     // returns true for failure, false for success
     bool executeCommandLine(const char* line);
+    
+    // redirect output to a stream
+    bool executeCommandLine(Stream* s, const char* line);
     
     // low level virtual functions
     int available();
@@ -42,7 +42,7 @@ class Console : public Stream {
     void appendLog(const char* a);
     void appendLog(const char* a, size_t size);
 
-    Shell* getShell() { return _shell; }
+    Shell* getShell() { return &_shell; }
     
   private:
     void debugPrefix(char* s);
@@ -55,7 +55,7 @@ class Console : public Stream {
     char _debugLog[_debugLogSize]; // log of recent debug output
     size_t _debugLogStart = 0;
     size_t _debugLogEnd = 0;
-    Shell* _shell = nullptr;
+    Shell _shell;
     bool _wasRunning = false;
 };
 

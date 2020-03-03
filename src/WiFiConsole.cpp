@@ -27,14 +27,19 @@
 // todo: make these class fields
 WiFiClient _client;
 WiFiServer _telnetServer(23);
+bool _telnetServerBegun = false;
 
 void WiFiConsole::begin() {
   Console::begin();
-  _telnetServer.begin(23);
-  _telnetServer.setNoDelay(true);
 };
 
 void WiFiConsole::idle() {
+  // defer beginning telnet server until after we're connected to the WiFi
+  if (!_telnetServerBegun && (WiFi.status() == WL_CONNECTED)) {
+    _telnetServer.begin(23);
+    _telnetServer.setNoDelay(true);
+    _telnetServerBegun = true;
+  }
 
 // todo: I don't know if this is necessary on ESP32
 #if defined(ESP8266)

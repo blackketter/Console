@@ -6,21 +6,13 @@
 #include "CommandLine.h"
 #include "Commands/Commands.h"
 
-Console::Console() {
-  _shell = new Shell;
-}
-
-Console::~Console() {
-  delete _shell;
-}
-
 void Console::begin() {
   // if a port has not been specified, then default to the main serial port
   if (_port == nullptr) {
     _port = &Serial;
     Serial.begin(115200);
   }
-  
+ 
   // this assumes all commands are added by their global static instance constructors
   Command::sortCommands();
 
@@ -42,7 +34,14 @@ void Console::idle() {
 };
 
 bool Console::executeCommandLine(const char* line) {
-  return _shell->executeCommandLine(this, line);
+  return _shell.executeCommandLine(this, line);
+}
+
+bool Console::executeCommandLine(Stream* s, const char* line) {
+  Stream* oldPort = setPort(s);
+  bool result = _shell.executeCommandLine(this, line);
+  setPort(oldPort);
+  return result;
 }
 
 
