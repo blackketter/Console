@@ -1,25 +1,28 @@
-#ifndef _ConsoleCommands_
-#define _ConsoleCommands_
+#ifndef _ShellCommands_
+#define _ShellCommands_
+#include "Console.h"
+// Some built-in commands for the shell
 
-// Some built-in commands for the console
+class ShellCommand : public Command {
+};
 
 ////////////////// HelloCommand
 
-class HelloCommand : public Command {
+class HelloCommand : public ShellCommand {
   public:
     const char* getName() { return "hello"; }
     const char* getHelp() { return "Greets you"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) { c->print("Hello Console!\n"); }
+    void execute(Console* c, uint8_t paramCount, char** params) { c->print("Hello Console!\n"); }
 };
 
 HelloCommand theHelloCommand;
 
 ////////////////// List Command
-class ListCommand : public Command {
+class ListCommand : public ShellCommand {
   public:
     const char* getName() { return "list"; }
     const char* getHelp() { return "Prints out listing of current program"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       CommandLine* line = CommandLine::first();
       while (line) {
         if (line->getNumber()) {
@@ -32,11 +35,11 @@ class ListCommand : public Command {
 ListCommand theListCommand;
 
 ////////////////// Run Command
-class RunCommand : public Command {
+class RunCommand : public ShellCommand {
   public:
     const char* getName() { return "run"; }
     const char* getHelp() { return "Runs current program"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       // todo - initialize running state (variables, etc.)?
       if (paramCount == 1) {
         gotoLine(atoi(params[1]));
@@ -53,18 +56,18 @@ class RunCommand : public Command {
       return (_nextLine != nullptr);
     }
 
-    void idle(Stream* c) override {
+    void idle(Console* c) override {
       if (_currCommand && _currCommand->isRunning()) {
         return;
       }
       if (_nextLine) {
         CommandLine* thisLine = _nextLine;
         _nextLine = _nextLine->getNext();
-        bool fail = Console::get()->executeCommandLine(c, thisLine->c_str());
+        bool fail = c->getShell()->executeCommandLine(c, thisLine->c_str());
         if (fail) {
           kill();
         } else {
-          _currCommand = Console::get()->getLastCommand();
+          _currCommand = c->getShell()->getLastCommand();
         }
       }
     }
@@ -89,11 +92,11 @@ class RunCommand : public Command {
 RunCommand theRunCommand;
 
 ////////////////// End Command
-class EndCommand : public Command {
+class EndCommand : public ShellCommand {
   public:
     const char* getName() { return "end"; }
     const char* getHelp() { return "Ends program"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
         theRunCommand.gotoLine(NO_LINENUMBER);
     }
 };
@@ -104,7 +107,7 @@ class GotoCommand : public Command {
   public:
     const char* getName() { return "goto"; }
     const char* getHelp() { return "<line number> - Jump to line"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       theRunCommand.execute(c,paramCount,params);
       if (paramCount == 1) {
         theRunCommand.gotoLine(atoi(params[1]));
@@ -116,11 +119,11 @@ class GotoCommand : public Command {
 GotoCommand theGotoCommand;
 
 ////////////////// Gosub Command
-class GosubCommand : public Command {
+class GosubCommand : public ShellCommand {
   public:
     const char* getName() { return "gosub"; }
     const char* getHelp() { return "<line number> - Go to subroutine"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       if (paramCount == 1) {
         linenumber_t returnLineNumber = theRunCommand.nextLineNumber();
         linenumber_t subLineNumber = atoi(params[1]);
@@ -155,33 +158,33 @@ class GosubCommand : public Command {
 GosubCommand theGosubCommand;
 
 ////////////////// Return Command
-class ReturnCommand : public Command {
+class ReturnCommand : public ShellCommand {
   public:
     const char* getName() { return "return"; }
     const char* getHelp() { return ("Return from subroutine"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       theGosubCommand.returnSub();
     }
 };
 ReturnCommand theReturnCommand;
 
-////////////////// Clear Command
-class ClearCommand : public Command {
+////////////////// New Command
+class ClearCommand : public ShellCommand {
   public:
-    const char* getName() { return "clear"; }
+    const char* getName() { return "new"; }
     const char* getHelp() { return ("Erase the program"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       CommandLine::clearAll();
     }
 };
 ClearCommand theClearCommand;
 
 ////////////////// Print Command
-class PrintCommand : public Command {
+class PrintCommand : public ShellCommand {
   public:
     const char* getName() { return "print"; }
     const char* getHelp() { return ("<...> - Print data"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       
       for (uint8_t i = 1; i <= paramCount; i++ ) {
         if (i!=1) { 
@@ -196,12 +199,12 @@ PrintCommand thePrintCommand;
 
 ////////////////// Log Command
 
-class LogCommand : public Command {
+class LogCommand : public ShellCommand {
   public:
     const char* getName() { return "log"; }
     const char* getHelp() { return ("Print out debug log"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
-      Console::get()->printLog(c);
+    void execute(Console* c, uint8_t paramCount, char** params) {
+      c->printLog(c);
     }
 };
 
@@ -209,11 +212,11 @@ LogCommand theLogCommand;
 
 ////////////////// Rem Command
 
-class RemCommand : public Command {
+class RemCommand : public ShellCommand {
   public:
     const char* getName() { return "rem"; }
     const char* getHelp() { return ("Just a remark"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
     }
 };
 
@@ -221,11 +224,11 @@ RemCommand theRemCommand;
 
 ////////////////// WaitCommand
 
-class WaitCommand : public Command {
+class WaitCommand : public ShellCommand {
   public:
     const char* getName() { return "wait"; }
     const char* getHelp() { return ("<ms> - wait a specified number of milliseconds"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       if (paramCount != 1) {
         printError(c);
         return;
@@ -261,30 +264,30 @@ WaitCommand theWaitCommand;
 
 ////////////////// DebugCommand
 
-class DebugCommand : public Command {
+class DebugCommand : public ShellCommand {
   public:
     const char* getName() { return "debug"; }
     const char* getHelp() { return ("<0|1> - disable/enable debug output"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       if (paramCount == 1) {
         bool debugState = atoi(params[1]);
-        Console::get()->debugEnable(debugState);
+        c->debugEnable(debugState);
       } else if (paramCount == 0) {
-        Console::get()->debugEnable(!Console::get()->debugEnabled());
+        c->debugEnable(!c->debugEnabled());
       }
-      c->printf("Debug: %s\n", Console::get()->debugEnabled() ? "on" : "off");
+      c->printf("Debug: %s\n", c->debugEnabled() ? "on" : "off");
     }
 };
 
 DebugCommand theDebugCommand;
 
-////////////////// HelpCommand
+////////////////// Prompt Command
 
-class PromptCommand : public Command {
+class PromptCommand : public ShellCommand {
   public:
     const char* getName() { return "prompt"; }
     const char* getHelp() { return ("<0|1> - disable/enable command prompt"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       if (paramCount == 1) {
         setEnabled(atoi(params[1]));
       } else if (paramCount == 0) {
@@ -304,14 +307,14 @@ PromptCommand thePromptCommand;
   
 ////////////////// HelpCommand
 
-class HelpCommand : public Command {
+class HelpCommand : public ShellCommand {
   public:
     const char* getName() { return "help"; }
     const char* getHelp() { return "<command> - Prints out this help"; }
-    void execute(Stream* c, uint8_t paramCount, char** params);
+    void execute(Console* c, uint8_t paramCount, char** params);
 };
 
-void HelpCommand::execute(Stream* c, uint8_t paramCount, char** params) {
+void HelpCommand::execute(Console* c, uint8_t paramCount, char** params) {
   Command* h = nullptr;
   if (paramCount) {
     h = Command::getByName(params[1]);

@@ -7,7 +7,7 @@ class DateCommand : public Command {
   public:
     const char* getName() { return "date"; }
     const char* getHelp() { return "<year> <month> <day> <hour> <minute> <second> - Print or Set Date"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       Clock theClock;
       int p = paramCount;
       uint16_t year = 0;

@@ -4,11 +4,12 @@
 #include <Arduino.h>
 #include "Command.h"
 #include "WString.h"
-#include "CommandLine.h"
+#include "Commands/Shell.h"
 
 class Console : public Stream {
   public:
     Console();
+    ~Console();
     Console(Stream* port);
     virtual void begin();
     virtual void idle();
@@ -22,19 +23,12 @@ class Console : public Stream {
     void debugEnable(bool enable) { _debugEnabled = enable; };
     bool debugEnabled() { return _debugEnabled; }
 
-    bool printDebug() { return _debugEnabled && (_commandLineLength == 0); }
-
-    void prompt();
+    bool printDebug();
 
     // returns true for failure, false for success
     bool executeCommandLine(const char* line);
-
-    // execute command line to another stream.  safe to pass nullptr for output if you don't care about the result
-    bool executeCommandLine(Stream* output, const char* line);
     
-
-    Command* getLastCommand() { return _lastCommand; }
-// low level virtual functions
+    // low level virtual functions
     int available();
     int read();
     int peek();
@@ -47,7 +41,9 @@ class Console : public Stream {
     void printLog(Print* p);
     void appendLog(const char* a);
     void appendLog(const char* a, size_t size);
-    static Console* get() { return _theConsole; }
+
+    Shell* getShell() { return _shell; }
+    
   private:
     void debugPrefix(char* s);
 
@@ -55,16 +51,11 @@ class Console : public Stream {
 
     bool _debugEnabled = true;
 
-    static const uint32_t _maxCommandLineLength = 100;  // todo: fixme
-    char _commandLine[_maxCommandLineLength];
-    uint32_t _commandLineLength = 0;
-
     static const size_t _debugLogSize = 2000;
     char _debugLog[_debugLogSize]; // log of recent debug output
     size_t _debugLogStart = 0;
     size_t _debugLogEnd = 0;
-    static Console* _theConsole;
-    Command* _lastCommand = nullptr;
+    Shell* _shell = nullptr;
     bool _wasRunning = false;
 };
 

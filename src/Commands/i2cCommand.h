@@ -8,7 +8,7 @@ class i2cCommand : public Command {
   public:
     const char* getName() { return "i2c"; }
     const char* getHelp() { return ("i2c scan"); }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       uint8_t error, address, nDevices;
 
       c->println("i2c scan:");

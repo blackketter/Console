@@ -16,10 +16,6 @@ void Command::printError(Stream* c) {
   c->printf("Usage: %s %s\n", getName(), getHelp());
 }
 
-Variable::Variable(const String &name, const String &value) : String(value) {
-  _name = name;
-}
-
 Command* Command::getByName(const char* n) {
   Command* currCommand = first();
     while (currCommand != nullptr) {

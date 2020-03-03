@@ -3,15 +3,17 @@
 
 #include <Arduino.h>
 
+class Console;
+
 class Command {
   public:
     Command();
-    virtual void execute(Stream* c, uint8_t paramCount, char** params) = 0;
+    virtual void execute(Console* c, uint8_t paramCount, char** params) = 0;
     virtual const char* getName() = 0;
     virtual const char* getHelp() = 0;
 
     virtual void begin() {};
-    virtual void idle(Stream* c) {};
+    virtual void idle(Console* c) {};
 
     // commands can continue running after execute
     virtual bool isRunning() { return false; };

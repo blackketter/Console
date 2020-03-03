@@ -4,15 +4,14 @@
 #include "Console.h"
 #include "Command.h"
 #include "CommandLine.h"
-#include "NullStream.h"
-
 #include "Commands/Commands.h"
 
-Console* Console::_theConsole;
-
 Console::Console() {
-  _commandLine[0] = 0;
-  _theConsole = this;
+  _shell = new Shell;
+}
+
+Console::~Console() {
+  delete _shell;
 }
 
 void Console::begin() {
@@ -21,7 +20,7 @@ void Console::begin() {
     _port = &Serial;
     Serial.begin(115200);
   }
-
+  
   // this assumes all commands are added by their global static instance constructors
   Command::sortCommands();
 
@@ -40,186 +39,12 @@ void Console::idle() {
     idler->idle(this);
     idler = idler->next();
   }
-
-  // bail before command line parsing if running command is reading input
-  if (_lastCommand && _lastCommand->isRunning() && _lastCommand->isReading()) {
-    return;
-  }
-  
-// loopback (100 chars at a time, max)
-  uint8_t i = 100;
-  bool toFlush = false;
-
-  while (i-- && available()) {
-    toFlush = true;
-
-    uint8_t c = read();
-
-    if (c < 128) {
-      // valid character
-      if (c == 8 || c == 127) {
-        // backspace
-        if (_commandLineLength) {
-          _commandLineLength--;
-          _commandLine[_commandLineLength] = 0;
-          write(8); write(' '); write(8);
-        }
-      } else if (c == '\r') {
-        // new line
-        write(c);
-        write('\n');
-        _commandLineLength = 0;
-        bool fail = executeCommandLine(_commandLine);
-        _commandLine[0] = 0;
-        if (fail) {
-          executeCommandLine("help");
-        }
-
-
-      } else if (c == '\n') {
-        // ignore
-      } else if (c == 0) {
-        // ignore
-      } else if (c == 3) {
-        // control-c
-        println("Ctrl-C: Stopping");
-        Command::killAll();
-      }  else {
-        // ignore some characters (extra chars past the max line length, tab)
-        if ((_commandLineLength < _maxCommandLineLength) &&
-            (c != '\t')) {
-          _commandLine[_commandLineLength] = c;
-          _commandLineLength++;
-          _commandLine[_commandLineLength] = 0;
-          write(c);
-        }
-     }
-    }
-  }
-
-  if (toFlush) {
-    flush();
-  }
 };
 
-void Console::prompt() {
-  if (thePromptCommand.enabled())
-    print(thePromptCommand.getPrompt());
-}
-
-inline bool isSpace(char c) {
-  return c == ' ' || c == '\t' || c == '\r';
-}
-inline bool isEnd(char c) {
-  return c == 0;
-}
-inline bool isBetween(char c) {
-  return isSpace(c) || isEnd(c);
-}
-
-inline bool isLineNum(char c) {
-  return c >= '0' && c <= '9';
-}
-
 bool Console::executeCommandLine(const char* line) {
-  return executeCommandLine(this, line);
+  return _shell->executeCommandLine(this, line);
 }
 
-bool Console::executeCommandLine(Stream* output, const char* line) {
-  const int maxParams = 5;
-  char* params[maxParams];
-  char currLine[_maxCommandLineLength];
-  int paramCount = 0;
-  int commandLineIndex = 0;
-
-  if ((line == nullptr) || (isEnd(line[0]))) {
-    // no command, it succeeds
-    return false;
-  }
-
-  char* commandStart = currLine;
-  strcpy(currLine, line);
-
-  NullStream nullStream;
-  if (output == nullptr) {
-    output = &nullStream;
-  }
-  while (isSpace(commandStart[commandLineIndex])) {
-    commandLineIndex++;
-  }
-
-  if (isLineNum(commandStart[commandLineIndex])) {
-    linenumber_t n = atoi(&commandStart[commandLineIndex]);
-    if (n) {
-      while (isLineNum(commandStart[commandLineIndex])) {
-        commandLineIndex++;
-      }
-      while (isSpace(commandStart[commandLineIndex])) {
-        commandLineIndex++;
-      }
-      if (n) {
-        if (strlen(&commandStart[commandLineIndex])) {
-          CommandLine* commandLine = new CommandLine(n, &commandStart[commandLineIndex]);
-          if (commandLine) {
-            CommandLine::addLine(commandLine);  // we always have a first line, a REMark
-          }
-        } else {
-          CommandLine* del = CommandLine::removeLine(n);
-          if (del) { delete del; }
-        }
-        // returns success
-        return false; // added the line to the current program
-      }
-    }
-  }
-
-  // parse out the command and parameters
-  while (1) {
-//    printf("(first:%d)", commandStart[commandLineIndex]);
-    while (isSpace(commandStart[commandLineIndex])) {
-      commandLineIndex++;
-    }
-
-    if (isEnd(commandStart[commandLineIndex])) {
-      break;
-    }
-
-    commandStart += commandLineIndex;
-    commandLineIndex = 0;
-    params[paramCount] = commandStart;
-
-    while (!isBetween(commandStart[commandLineIndex])) {
-      commandLineIndex++;
-    }
-
-    paramCount++;
-
-    if (paramCount >= maxParams) {
-      break;
-    }
-    if (isEnd(commandStart[commandLineIndex])) {
-      break;
-    }
-
-    commandStart[commandLineIndex] = 0;
-    commandStart += commandLineIndex + 1;
-    commandLineIndex = 0;
-  };
-
-  bool failure = false;
-  if (paramCount) {
-    Command* c = Command::getByName(params[0]);
-    if (c) {
-      c->execute(output, paramCount-1, params);
-      _lastCommand = c;
-    } else {
-      failure = true;
-      _lastCommand = nullptr;
-      output->printf("Unknown Command: %s\n", params[0]);
-    }
-  }
-  return failure;
-}
 
 int Console::available() {
   if (_port) {
@@ -360,6 +185,12 @@ void Console::appendLog(const char*s, size_t len) {
     remaining--;
   }
 }
+
+bool Console::printDebug() {
+  // TODO - pause debug output while editing command line in shell
+  return _debugEnabled;
+}
+
 void Console::printLog() {
   printLog(this);
 }

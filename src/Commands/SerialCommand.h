@@ -3,13 +3,15 @@
 #include "Command.h"
 #include "SoftwareSerial.h"
 #include "Clock.h"
+#include "Console.h"
+
 class SerialCommand : public Command {
   public:
     const char* getName() override { return "serial"; }
     const char* getHelp() override { return "<rx pin> <tx pin> <baud> - Tunnel serial connection"; }
     bool isReading() override { return isRunning(); }
     bool isRunning() override { return _serialPort != nullptr; }
-    void execute(Stream* c, uint8_t paramCount, char** params) override {
+    void execute(Console* c, uint8_t paramCount, char** params) override {
       if (paramCount < 2) {
         printError(c);
         return;
@@ -34,7 +36,7 @@ class SerialCommand : public Command {
       }
     }
 
-    void idle(Stream* c) override {
+    void idle(Console* c) override {
       if (_serialPort) {
         // send serial data to console
         while (_serialPort->available()) {

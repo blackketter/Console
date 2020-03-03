@@ -11,7 +11,7 @@ class pinCommand : public Command {
     void printState(Stream* c, uint8_t pin) {
       c->printf("  Pin: %d %s\n", pin, digitalRead(pin) ? "HIGH" : "LOW");
     }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       if (paramCount < 2) {
         printError(c);
       } else {
@@ -68,7 +68,7 @@ class pinCommand : public Command {
       }
     }
 
-    void idle(Stream* c) override {
+    void idle(Console* c) override {
       if (Uptime::millis() > lastBlink + blinkInterval) {
         lastBlink = Uptime::millis();
         blinkState = !blinkState;

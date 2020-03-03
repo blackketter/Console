@@ -2,11 +2,12 @@
 #include "Clock.h"
 #include "Command.h"
 
+// TODO: Move this to microseconds and floating point
 class FPSCommand : public Command {
   public:
     const char* getName() { return "fps"; }
     const char* getHelp() { return "toggle displaying frame rate in fps"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       enable = !enable;
       c->printf("FPS display %s\n", enable ? "enabled" : "disabled");
     }
@@ -21,7 +22,7 @@ class FPSCommand : public Command {
       lastFrame = now;
     }
 
-    void idle(Stream* c) override {
+    void idle(Console* c) override {
       millis_t now = Uptime::millis();
       millis_t idleDur = now - lastIdle;
       if (idleDur > maxIdle) { maxIdle = idleDur; }

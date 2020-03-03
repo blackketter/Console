@@ -78,7 +78,7 @@ class InfoCommand : public Command {
   public:
     const char* getName() { return "info"; }
     const char* getHelp() { return "Print System Info"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       printInfo(c);
     }
 };

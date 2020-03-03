@@ -32,7 +32,7 @@ class LSCommand : public Command {
   public:
     const char* getName() { return "ls"; }
     const char* getHelp() { return "<-r> <path> - Directory listing"; }
-    void execute(Stream* c, uint8_t paramCount, char** params) {
+    void execute(Console* c, uint8_t paramCount, char** params) {
       uint8_t pathindex = 1;
       bool recurse = false;
       if (paramCount && (params[1][0] == '-')) {
