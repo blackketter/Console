@@ -13,67 +13,22 @@ void Shell::idle(Console* c) {
     return;
   }
   
-// loopback (100 chars at a time, max)
-  uint8_t i = 100;
-  bool toFlush = false;
-
-  while (i-- && c->available()) {
-    toFlush = true;
-
-    uint8_t ch = c->read();
-
-    if (ch < 128) {
-      // valid character
-      if (ch == 8 || ch == 127) {
-        // backspace
-        if (_commandLineLength) {
-          _commandLineLength--;
-          _commandLine[_commandLineLength] = 0;
-          c->write(8); c->write(' '); c->write(8);
-        }
-      } else if (ch == '\r') {
-        // new line
-        c->write(ch);
-        c->write('\n');
-        _commandLineLength = 0;
-        bool fail = executeCommandLine(c, _commandLine);
-        _commandLine[0] = 0;
-        if (fail) {
-          executeCommandLine(c, "help");
-        }
-
-        prompt(c);
-      } else if (ch == '\n') {
-        // ignore
-      } else if (ch == 0) {
-        // ignore
-      } else if (ch == 3) {
-        // control-c
+  String commandLine;
+  String prompt = thePromptCommand.getPrompt();
+  if (_readline.readline(c, prompt, commandLine)) {
+    // control-c
+    if (commandLine == "\x03") { 
         c->println("Ctrl-C: Stopping");
-        Command::killAll();
-      }  else {
-        // ignore some characters (extra chars past the max line length, tab)
-        if ((_commandLineLength < _maxCommandLineLength) &&
-            (ch != '\t')) {
-          _commandLine[_commandLineLength] = ch;
-          _commandLineLength++;
-          _commandLine[_commandLineLength] = 0;
-          c->write(ch);
-        }
-     }
+        Command::killAll();    
+    } else {
+      bool fail = executeCommandLine(c, commandLine.c_str());
+      if (fail) {
+        executeCommandLine(c, "help");
+      }
+      _readline.add_history(commandLine);
     }
   }
-
-  if (toFlush) {
-    c->flush();
-  }
 }
-
-void Shell::prompt(Stream* c) {
-  if (thePromptCommand.enabled())
-    c->print(thePromptCommand.getPrompt());
-}
-
 
 bool Shell::isReading() { 
   return isRunning(); }

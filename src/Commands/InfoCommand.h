@@ -32,16 +32,16 @@ void printInfo(Print* p) {
 #elif defined(BOARD_NAME)
   board = BOARD_NAME
 
-#elif defined(TEENSY40)
+#elif defined(TEENSY40)  || defined(ARDUINO_TEENSY40)
   board = "Teensy 4.0";
 
-#elif defined(TEENSY36)
+#elif defined(TEENSY36)  || defined(ARDUINO_TEENSY36)
   board = "Teensy 3.6";
 
-#elif defined(TEENSY35)
+#elif defined(TEENSY35)  || defined(ARDUINO_TEENSY35)
   board = "Teensy 3.5";
 
-#elif defined(TEENSY31)
+#elif defined(TEENSY31)  || defined(ARDUINO_TEENSY31)
 
 #if defined(__MK20DX256__)
   board = "Teensy LC";

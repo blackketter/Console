@@ -1,7 +1,7 @@
 #ifndef _Shell_
 #define _Shell_
 #include "Command.h"
-
+#include "Readline.h"
 class Console;
 
 class Shell : public Command {
@@ -20,14 +20,13 @@ class Shell : public Command {
     
     bool executeCommandLine(Console* output, const char* line);
     Command* getLastCommand() { return _lastCommand; }
-    
-    void prompt(Stream* c);
-    
+        
   private:
     Command* _lastCommand = nullptr;
     static const uint32_t _maxCommandLineLength = 100;  // todo: fixme
     char _commandLine[_maxCommandLineLength];
     uint32_t _commandLineLength = 0;
+    Readline _readline;
 
 };
 

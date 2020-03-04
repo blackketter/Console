@@ -297,7 +297,7 @@ class PromptCommand : public ShellCommand {
     }
     bool enabled() { return _enabled; }
     void setEnabled( bool e ) { _enabled = e; }
-    const char*  getPrompt() { return ">"; }
+    const char*  getPrompt() { return _enabled ? ">" : ""; }
   private:
     bool _enabled = true;
     
