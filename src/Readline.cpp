@@ -1,6 +1,26 @@
 #include "Readline.h"
 
-// TODO - add history
+static const char* ANSI_BEGIN = "\x1b[";
+static const char* ANSI_CURSOR_UP =    "\x1b[A";
+static const char* ANSI_CURSOR_DOWN =  "\x1b[B";
+static const char* ANSI_CURSOR_RIGHT = "\x1b[C";
+static const char* ANSI_CURSOR_LEFT =  "\x1b[D";
+//static const char* ANSI_ERASE_EOL = "\x1b[K";
+static const char UP = 'A';
+static const char DOWN = 'B';
+static const char RIGHT = 'C';
+static const char LEFT = 'D';
+static const char ESCAPE = 0x1b;
+
+void moveCursor(Stream* s, char dir, unsigned int count = 1) {
+  if (count == 0) return;
+  
+  s->print(ANSI_BEGIN);
+  if (count > 1) {
+    s->print(count);
+  }
+  s->print(dir);
+}
 
 bool Readline::readline(Stream* s, String& prompt, String& line) {
   bool success = false;
@@ -23,17 +43,27 @@ bool Readline::readline(Stream* s, String& prompt, String& line) {
     } else if (ch == 8 || ch == 127) {
       // backspace
       if (_line.length()) {
-        _line.remove(_line.length()-1);
-        backspace(s);
+        _cursor--;
+        _line.remove(_cursor,1);
+        
+        moveCursor(s,LEFT);
+        String after = _line.substring(_cursor);
+        if (after.length()) {
+          s->print(after);
+        }
+        s->print(' ');
+        moveCursor(s,LEFT,after.length()+1);
+      } else {
+        beep(s);
       }
 
     } else if (ch == 0x03) {
       // control-c
-      line = "0x03";
+      line = "\x03";
       success = true;
       reset();
 
-    } else if (ch == 0x1b) {
+    } else if (ch == ESCAPE) {
       // escape
       _line += ch;
       _escaping = true;      
@@ -47,40 +77,77 @@ bool Readline::readline(Stream* s, String& prompt, String& line) {
       success = true;
 
     } else {
-      if (!_escaping) {
-        s->write(ch);
+      if (_escaping) {
+        _line += ch;
+      } else {
+
+          String before, after;
+          if (_cursor) {
+            before = _line.substring(0, _cursor);
+          }
+          if (_cursor < _line.length()) {
+            after = _line.substring(_cursor);
+          }
+          _line = before + ch + after;
+          
+          s->print(ch);
+          s->print(after);
+          
+          moveCursor(s,LEFT,after.length());
+          _cursor++;
       }
-      _line += ch;
     }
     
     if (_escaping) {
-      if (_line.endsWith("\x1b\x5b\x41")) { 
+      if (_line.endsWith(ANSI_CURSOR_UP)) { 
         // up arrow
         removeEscape();
         if (_currHistory < _historyLen) {
+          _history[_currHistory] = _line;
           clearLine(s);
           _currHistory++;
           _line = _history[_currHistory];
           s->print(_line);
+          _cursor = _line.length();
+        } else {
+          beep(s);
         }
 
-      } else if (_line.endsWith("\x1b\x5b\x42")) {
+      } else if (_line.endsWith(ANSI_CURSOR_DOWN)) {
         // down arrow
         removeEscape();
         if (_currHistory > 0) {
+          _history[_currHistory] = _line;
           clearLine(s);
           _currHistory--;
           _line = _history[_currHistory];
           s->print(_line);
+          _cursor = _line.length();
+        } else {
+          beep(s);
         }
+
       
-      } else if (_line.endsWith("\x1b\x5b\x43")) {
+      } else if (_line.endsWith(ANSI_CURSOR_RIGHT)) {
         // right arrow
         removeEscape();
-        
-      } else if (_line.endsWith("\x1b\x5b\x44")) {
+        if (_cursor < _line.length()) {
+          moveCursor(s,RIGHT);
+          _cursor++;
+        } else {
+          beep(s);
+        }
+
+      } else if (_line.endsWith(ANSI_CURSOR_LEFT)) {
         // left arrow
         removeEscape();
+        if (_cursor > 0) {
+          moveCursor(s,LEFT);
+          _cursor--;
+        } else {
+          beep(s);
+        }
+
       }
     }
 
@@ -98,15 +165,15 @@ void Readline::add_history(String& line) {
   }
   
   // don't add duplicate lines to history
-  if (line == _history[0]) {
+  if (line == _history[1]) {
     return;
   }
   
-  for (int i = _historyMax-1; i >= 0; i--) {
+  for (int i = _historyMax-1; i >= 1; i--) {
     _history[i+1] = _history[i];
   }
-  _history[0] = line;
-  _currHistory = -1;
+  _history[1] = line;
+  _currHistory = 0;
   _historyLen++;
   if (_historyLen > _historyMax) {
     _historyLen = _historyMax;
@@ -117,6 +184,7 @@ void Readline::reset() {
   _prompted = false;
   _line = "";
   _escaping = false;
+  _cursor = 0;
 }
 
 void Readline::backspace(Stream* s) {
@@ -131,8 +199,13 @@ void Readline::removeEscape() {
 }
 
 void Readline::clearLine(Stream* s) {
-  for (int i = 0; i < _line.length(); i++) {
+  for (unsigned int i = 0; i < _line.length(); i++) {
     backspace(s);
   }
+  _cursor = 0;
+}
+
+void Readline::beep(Stream* s) {
+ s->write('\x07');
 }
 

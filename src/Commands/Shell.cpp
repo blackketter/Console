@@ -23,7 +23,7 @@ void Shell::idle(Console* c) {
     } else {
       bool fail = executeCommandLine(c, commandLine.c_str());
       if (fail) {
-        executeCommandLine(c, "help");
+//        executeCommandLine(c, "help");
       }
       _readline.add_history(commandLine);
     }

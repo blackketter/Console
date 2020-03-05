@@ -169,7 +169,7 @@ class ReturnCommand : public ShellCommand {
 ReturnCommand theReturnCommand;
 
 ////////////////// New Command
-class ClearCommand : public ShellCommand {
+class NewCommand : public ShellCommand {
   public:
     const char* getName() { return "new"; }
     const char* getHelp() { return ("Erase the program"); }
@@ -177,7 +177,7 @@ class ClearCommand : public ShellCommand {
       CommandLine::clearAll();
     }
 };
-ClearCommand theClearCommand;
+NewCommand theNewCommand;
 
 ////////////////// Print Command
 class PrintCommand : public ShellCommand {

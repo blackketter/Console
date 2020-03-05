@@ -19,8 +19,11 @@ class Readline {
     int _historyLen = 0;
     String _history[_historyMax+1];
     
+    unsigned int _cursor = 0;
+    
     void backspace(Stream* s);
     void clearLine(Stream* s);
     void removeEscape();
+    void beep(Stream* s);
 };
 #endif
