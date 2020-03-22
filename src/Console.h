@@ -8,7 +8,7 @@
 
 class Console : public Stream {
   public:
-    virtual void begin();
+    virtual void begin(Stream* port = nullptr);  // defaults to Serial with nullptr
     virtual void idle();
     virtual void close() { }
     Stream* getPort() { return _port; }

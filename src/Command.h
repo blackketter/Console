@@ -33,6 +33,11 @@ class Command {
     void printError(Stream* c);
     static void killAll();
 
+    // hack: execute should have had constant params from the start
+    inline void execute(Console* c, uint8_t paramCount, char const* const* params) {
+      execute(c,paramCount,(char**)params);
+    }
+
   private:
     Command* _next = nullptr;
 

@@ -1,7 +1,11 @@
 #ifndef _ShellCommands_
 #define _ShellCommands_
 #include "Console.h"
+#include "Clock.h"
 // Some built-in commands for the shell
+
+
+// TODO: Move state from commands to shell so that multiple shells can run
 
 class ShellCommand : public Command {
 };
@@ -23,7 +27,7 @@ class ListCommand : public ShellCommand {
     const char* getName() { return "list"; }
     const char* getHelp() { return "Prints out listing of current program"; }
     void execute(Console* c, uint8_t paramCount, char** params) {
-      CommandLine* line = CommandLine::first();
+      CommandLine* line = c->getShell()->firstLine();
       while (line) {
         if (line->getNumber()) {
           c->printf("%5d %s\n", line->getNumber(), line->c_str());
@@ -40,11 +44,10 @@ class RunCommand : public ShellCommand {
     const char* getName() { return "run"; }
     const char* getHelp() { return "Runs current program"; }
     void execute(Console* c, uint8_t paramCount, char** params) {
-      // todo - initialize running state (variables, etc.)?
       if (paramCount == 1) {
-        gotoLine(atoi(params[1]));
+        gotoLine(c, atoi(params[1]));
       } else {
-        _nextLine = CommandLine::first();
+        _nextLine = c->getShell()->firstLine();
       }
     }
     void kill() override {
@@ -72,8 +75,8 @@ class RunCommand : public ShellCommand {
       }
     }
 
-    void gotoLine(linenumber_t g) {
-      CommandLine* line = CommandLine::getLine(g);
+    void gotoLine(Console* c, linenumber_t g) {
+      CommandLine* line = c->getShell()->getLine(g);
       _nextLine = line;
     }
 
@@ -97,7 +100,7 @@ class EndCommand : public ShellCommand {
     const char* getName() { return "end"; }
     const char* getHelp() { return "Ends program"; }
     void execute(Console* c, uint8_t paramCount, char** params) {
-        theRunCommand.gotoLine(NO_LINENUMBER);
+        theRunCommand.gotoLine(c, NO_LINENUMBER);
     }
 };
 EndCommand theEndCommand;
@@ -110,7 +113,7 @@ class GotoCommand : public Command {
     void execute(Console* c, uint8_t paramCount, char** params) {
       theRunCommand.execute(c,paramCount,params);
       if (paramCount == 1) {
-        theRunCommand.gotoLine(atoi(params[1]));
+        theRunCommand.gotoLine(c, atoi(params[1]));
       } else {
         printError(c);
       }
@@ -136,19 +139,19 @@ class GosubCommand : public ShellCommand {
             _currDepth++;
           }
         }
-        theRunCommand.gotoLine(subLineNumber);
+        theRunCommand.gotoLine(c, subLineNumber);
       } else {
         printError(c);
       }
     }
 
-    void returnSub() {
+    void returnSub(Console* c) {
       linenumber_t returnLineNumber = NO_LINENUMBER;
       if (_currDepth) {
         _currDepth--;
         returnLineNumber = _return[_currDepth];
       }
-      theRunCommand.gotoLine(returnLineNumber);
+      theRunCommand.gotoLine(c, returnLineNumber);
     }
   private:
     static const uint8_t MAX_GOSUB_DEPTH = 5;
@@ -163,7 +166,7 @@ class ReturnCommand : public ShellCommand {
     const char* getName() { return "return"; }
     const char* getHelp() { return ("Return from subroutine"); }
     void execute(Console* c, uint8_t paramCount, char** params) {
-      theGosubCommand.returnSub();
+      theGosubCommand.returnSub(c);
     }
 };
 ReturnCommand theReturnCommand;
@@ -174,7 +177,8 @@ class NewCommand : public ShellCommand {
     const char* getName() { return "new"; }
     const char* getHelp() { return ("Erase the program"); }
     void execute(Console* c, uint8_t paramCount, char** params) {
-      CommandLine::clearAll();
+      // todo - initialize running state (variables, etc.)?
+      c->getShell()->clearLines();
     }
 };
 NewCommand theNewCommand;
@@ -238,7 +242,7 @@ class WaitCommand : public ShellCommand {
         printError(c);
         return;
       }
-      _until = millis() + delay;
+      _until = Uptime::millis() + delay;
     }
 
     void kill() {
@@ -246,7 +250,7 @@ class WaitCommand : public ShellCommand {
     }
     bool isRunning() {
       // check to see if time's up
-      if (_until < millis()) {
+      if (_until < Uptime::millis()) {
         _until = 0;
       }
 
@@ -255,9 +259,7 @@ class WaitCommand : public ShellCommand {
     }
 
   private:
-    // TODO: use clock library
-    // millis_t _until = 0;
-    uint32_t _until = 0;
+    millis_t _until = 0;
 };
 
 WaitCommand theWaitCommand;

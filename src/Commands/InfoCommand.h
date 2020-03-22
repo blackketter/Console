@@ -65,12 +65,6 @@ void printInfo(Print* p) {
   p->printf("Time: %s\n", string);
   theClock.longDate(string);
   p->printf("Date: %s\n", string);
-
-
-  uint32_t clockMillis = theClock.fracMillis();
-
-  uint32_t rtcMillis = (uint32_t)((theClock.getRTCMicros()%1000000)/1000);
-  p->printf("RTC millis:%03d, clock: %03d, diff: %d\n", (uint32_t)rtcMillis, (uint32_t)clockMillis, (int)rtcMillis - (int)clockMillis);
 }
 
 

@@ -6,7 +6,10 @@
 #include "CommandLine.h"
 #include "Commands/Commands.h"
 
-void Console::begin() {
+void Console::begin(Stream* port) {
+  if (port) {
+    setPort(port);
+  }
   // if a port has not been specified, then default to the main serial port
   if (_port == nullptr) {
     _port = &Serial;
