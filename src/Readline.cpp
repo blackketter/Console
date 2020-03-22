@@ -151,9 +151,9 @@ bool Readline::readline(Stream* s, String& prompt, String& line) {
       }
     }
 
-  }
+   s->flush();
+ }
   
-  s->flush();
   
   return success;
 }
