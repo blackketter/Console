@@ -29,6 +29,9 @@ class DateCommand : public Command {
       c->print(" ");
       theClock.longTime(*c);
       c->println();
+      if (!theClock.hasBeenSet()) {
+        c->println("Clock has not been set");
+      }
     }
 };
 
