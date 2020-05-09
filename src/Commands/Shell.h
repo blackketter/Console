@@ -10,7 +10,7 @@ class Shell : public Command {
     Shell();
     virtual ~Shell() = default;
     const char* getName() override { return "shell"; }
-    const char* getHelp() override { return "Console shell"; }
+    const char* getHelp() override { return nullptr; }
 
     bool isRunning() override;
     bool isReading() override;

@@ -189,9 +189,9 @@ class PrintCommand : public ShellCommand {
     const char* getName() { return "print"; }
     const char* getHelp() { return ("<...> - Print data"); }
     void execute(Console* c, uint8_t paramCount, char** params) {
-      
+
       for (uint8_t i = 1; i <= paramCount; i++ ) {
-        if (i!=1) { 
+        if (i!=1) {
           c->write(' ');
         }
         c->print(params[i]);
@@ -302,11 +302,11 @@ class PromptCommand : public ShellCommand {
     const char*  getPrompt() { return _enabled ? ">" : ""; }
   private:
     bool _enabled = true;
-    
+
 };
 
 PromptCommand thePromptCommand;
-  
+
 ////////////////// HelpCommand
 
 class HelpCommand : public ShellCommand {
@@ -337,14 +337,26 @@ void HelpCommand::execute(Console* c, uint8_t paramCount, char** params) {
 
     currCommand = first();
     while (currCommand) {
-      c->print("  ");
-      c->print(currCommand->getName());
-      for (int i = strlen(currCommand->getName()); i < commandLen + 3; i++) { c->write(' '); }
-      c->println(currCommand->getHelp());
+      const char* help = currCommand->getHelp();
+      if (help) {
+        c->print("  ");
+        c->print(currCommand->getName());
+        for (int i = strlen(currCommand->getName()); i < commandLen + 3; i++) { c->write(' '); }
+        c->println(help);
+      }
       currCommand = currCommand->next();
     }
   }
 }
 
 HelpCommand theHelpCommand;
+
+class HelpQCommand : public HelpCommand {
+  public:
+    const char* getName() { return "?"; }
+    const char* getHelp() { return nullptr; }
+};
+
+HelpQCommand theHelpQCommand;
+
 #endif
