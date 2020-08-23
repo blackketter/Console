@@ -6,7 +6,7 @@
 #include "CommandLine.h"
 #include "Commands/Commands.h"
 
-void Console::begin(Stream* port) {
+void Console::begin(Stream* port, size_t debugLogSize) {
   if (port) {
     setPort(port);
   }
@@ -15,7 +15,7 @@ void Console::begin(Stream* port) {
     _port = &Serial;
     Serial.begin(115200);
   }
- 
+
   // this assumes all commands are added by their global static instance constructors
   Command::sortCommands();
 
@@ -25,8 +25,28 @@ void Console::begin(Stream* port) {
     beginner->begin();
     beginner = beginner->next();
   }
+
+  _debugLogSize = debugLogSize;
+  if (_debugLog) {
+    free(_debugLog);
+    _debugLog = nullptr;
+  }
+
+  if (_debugLogSize) {
+    _debugLog = (char*)malloc(debugLogSize);
+    if (!_debugLog) {
+      _debugLogSize = 0;
+      print("Console: Debug Log Allocation Failed!");
+    }
+  }
 }
 
+Console::~Console() {
+  if (_debugLog) {
+    free(_debugLog);
+    _debugLog = nullptr;
+  }
+}
 void Console::idle() {
   // idle commands
   Command* idler = Command::first();
@@ -164,6 +184,9 @@ void Console::appendLog(const char* s) {
 }
 
 void Console::appendLog(const char*s, size_t len) {
+  if (_debugLogSize == 0) {
+    return;
+  }
   const char* curChar = s;
   size_t remaining = len;
   while (remaining != 0) {
@@ -198,6 +221,11 @@ void Console::printLog() {
 }
 
 void Console::printLog(Print* p) {
+  if (_debugLogSize == 0) {
+    p->print("No log buffer\n");
+    return;
+  }
+
   char* start;
   size_t len;
 

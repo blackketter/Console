@@ -8,7 +8,10 @@
 
 class Console : public Stream {
   public:
-    virtual void begin(Stream* port = nullptr);  // defaults to Serial with nullptr
+    ~Console();
+
+    // default port of null means use Serial.
+    virtual void begin(Stream* port = nullptr, size_t debugLogSize = _defaultDebugLogSize);
     virtual void idle();
     virtual void close() { }
     Stream* getPort() { return _port; }
@@ -24,10 +27,10 @@ class Console : public Stream {
 
     // returns true for failure, false for success
     bool executeCommandLine(const char* line);
-    
+
     // redirect output to a stream
     bool executeCommandLine(Stream* s, const char* line);
-    
+
     // low level virtual functions
     int available();
     int read();
@@ -43,7 +46,7 @@ class Console : public Stream {
     void appendLog(const char* a, size_t size);
 
     Shell* getShell() { return &_shell; }
-    
+
   private:
     void debugPrefix(char* s);
 
@@ -51,8 +54,9 @@ class Console : public Stream {
 
     bool _debugEnabled = true;
 
-    static const size_t _debugLogSize = 2000;
-    char _debugLog[_debugLogSize]; // log of recent debug output
+    static const size_t _defaultDebugLogSize = 2000;
+    size_t _debugLogSize;
+    char* _debugLog = nullptr; // log of recent debug output
     size_t _debugLogStart = 0;
     size_t _debugLogEnd = 0;
     Shell _shell;

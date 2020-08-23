@@ -35,29 +35,30 @@ void printInfo(Print* p) {
 #elif defined(TEENSY40)  || defined(ARDUINO_TEENSY40)
   board = "Teensy 4.0";
 
+#elif defined(TEENSY41)  || defined(ARDUINO_TEENSY41)
+  board = "Teensy 4.1";
+
 #elif defined(TEENSY36)  || defined(ARDUINO_TEENSY36)
   board = "Teensy 3.6";
 
 #elif defined(TEENSY35)  || defined(ARDUINO_TEENSY35)
   board = "Teensy 3.5";
 
-#elif defined(TEENSY31)  || defined(ARDUINO_TEENSY31)
+#elif defined(TEENSYLC)  || defined(ARDUINO_TEENSYLC)
+//  board = "Teensy LC";
 
-#if defined(__MK20DX256__)
-  board = "Teensy LC";
-#else
+#elif defined(TEENSY31)  || defined(ARDUINO_TEENSY31)
   board = "Teensy 3.1/3.2";
-#endif
 
 #else
 #warning Unknown board for InfoCommand
-
 #endif
 
   p->printf("Board: %s\n", board);
   p->printf("Compiled: " __DATE__ " " __TIME__ "\n");
   p->printf("Free ram: %10d\n", FreeMem());
-  p->printf("Uptime: %f\n", Uptime::micros()/1000000.0);
+  millis_t up = Uptime::millis();
+  p->printf("Uptime: %d.%d\n", (int)(up/1000), (int)(up%1000));
   p->printf("CPU Speed: %d\n", (int)F_CPU);
 
   char string[100];
