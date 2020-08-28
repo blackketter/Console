@@ -45,7 +45,7 @@ void printInfo(Print* p) {
   board = "Teensy 3.5";
 
 #elif defined(TEENSYLC)  || defined(ARDUINO_TEENSYLC)
-//  board = "Teensy LC";
+  board = "Teensy LC";
 
 #elif defined(TEENSY31)  || defined(ARDUINO_TEENSY31)
   board = "Teensy 3.1/3.2";

@@ -31,7 +31,7 @@ class FPSCommand : public Command {
       if (now - lastTime > 1000) {
        _lastFPS = ((float)(frames*1000))/(now - lastTime);
         if (enable) {
-          c->printf("FPS: %.2f (Max frame: %dms, Min frame: %dms, Max idle: %dms)\n", _lastFPS, (int)maxFrame, (int)minFrame, (int)maxIdle);
+          c->printf("FPS: %d.%02d (Max frame: %dms, Min frame: %dms, Max idle: %dms)\n", (int)_lastFPS, (int)((_lastFPS-(int)_lastFPS)*100.0f), (int)maxFrame, (int)minFrame, (int)maxIdle);
         }
         lastTime = now;
         frames = 0;
