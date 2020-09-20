@@ -19,7 +19,7 @@ class HelloCommand : public ShellCommand {
     void execute(Console* c, uint8_t paramCount, char** params) { c->print("Hello Console!\n"); }
 };
 
-HelloCommand theHelloCommand;
+extern HelloCommand theHelloCommand;
 
 ////////////////// List Command
 class ListCommand : public ShellCommand {
@@ -36,7 +36,7 @@ class ListCommand : public ShellCommand {
       }
     }
 };
-ListCommand theListCommand;
+extern ListCommand theListCommand;
 
 ////////////////// Run Command
 class RunCommand : public ShellCommand {
@@ -92,7 +92,8 @@ class RunCommand : public ShellCommand {
     CommandLine* _nextLine = nullptr;
     Command* _currCommand = nullptr;
 };
-RunCommand theRunCommand;
+
+extern RunCommand theRunCommand;
 
 ////////////////// End Command
 class EndCommand : public ShellCommand {
@@ -103,7 +104,7 @@ class EndCommand : public ShellCommand {
         theRunCommand.gotoLine(c, NO_LINENUMBER);
     }
 };
-EndCommand theEndCommand;
+extern EndCommand theEndCommand;
 
 ////////////////// Goto Command
 class GotoCommand : public Command {
@@ -119,7 +120,7 @@ class GotoCommand : public Command {
       }
     }
 };
-GotoCommand theGotoCommand;
+extern GotoCommand theGotoCommand;
 
 ////////////////// Gosub Command
 class GosubCommand : public ShellCommand {
@@ -158,7 +159,8 @@ class GosubCommand : public ShellCommand {
     linenumber_t _return[MAX_GOSUB_DEPTH];
     uint8_t _currDepth = 0;
 };
-GosubCommand theGosubCommand;
+
+extern GosubCommand theGosubCommand;
 
 ////////////////// Return Command
 class ReturnCommand : public ShellCommand {
@@ -169,7 +171,8 @@ class ReturnCommand : public ShellCommand {
       theGosubCommand.returnSub(c);
     }
 };
-ReturnCommand theReturnCommand;
+
+extern ReturnCommand theReturnCommand;
 
 ////////////////// New Command
 class NewCommand : public ShellCommand {
@@ -181,7 +184,8 @@ class NewCommand : public ShellCommand {
       c->getShell()->clearLines();
     }
 };
-NewCommand theNewCommand;
+
+extern NewCommand theNewCommand;
 
 ////////////////// Print Command
 class PrintCommand : public ShellCommand {
@@ -199,20 +203,31 @@ class PrintCommand : public ShellCommand {
       c->write('\n');
     }
 };
-PrintCommand thePrintCommand;
+
+extern PrintCommand thePrintCommand;
 
 ////////////////// Log Command
 
 class LogCommand : public ShellCommand {
   public:
     const char* getName() { return "log"; }
-    const char* getHelp() { return ("Print out debug log"); }
+    const char* getHelp() { return ("<...> - Log to or print out debug log"); }
     void execute(Console* c, uint8_t paramCount, char** params) {
-      c->printLog(c);
+      if (paramCount > 0) {
+        c->debug(params[1]);
+        for (uint8_t i = 2; i <= paramCount; i++ ) {
+          c->debugAppend(" ");
+          c->debugAppend(params[i]);
+        }
+        c->debugAppend("\n");
+
+      } else {
+        c->printLog(c);
+      }
     }
 };
 
-LogCommand theLogCommand;
+extern LogCommand theLogCommand;
 
 ////////////////// Rem Command
 
@@ -224,7 +239,7 @@ class RemCommand : public ShellCommand {
     }
 };
 
-RemCommand theRemCommand;
+extern RemCommand theRemCommand;
 
 ////////////////// WaitCommand
 
@@ -262,7 +277,7 @@ class WaitCommand : public ShellCommand {
     millis_t _until = 0;
 };
 
-WaitCommand theWaitCommand;
+extern WaitCommand theWaitCommand;
 
 ////////////////// DebugCommand
 
@@ -281,7 +296,7 @@ class DebugCommand : public ShellCommand {
     }
 };
 
-DebugCommand theDebugCommand;
+extern DebugCommand theDebugCommand;
 
 ////////////////// Prompt Command
 
@@ -305,7 +320,7 @@ class PromptCommand : public ShellCommand {
 
 };
 
-PromptCommand thePromptCommand;
+extern PromptCommand thePromptCommand;
 
 ////////////////// HelpCommand
 
@@ -313,43 +328,41 @@ class HelpCommand : public ShellCommand {
   public:
     const char* getName() { return "help"; }
     const char* getHelp() { return "<command> - Prints out this help"; }
-    void execute(Console* c, uint8_t paramCount, char** params);
+    void execute(Console* c, uint8_t paramCount, char** params) {
+      Command* h = nullptr;
+      if (paramCount) {
+        h = Command::getByName(params[1]);
+        if (h) {
+          h->printError(c);
+        }
+      }
+      if (h == nullptr) {
+        c->print("Known Commands:\n");
+
+        Command* currCommand = first();
+        int commandLen = 0;
+        while (currCommand) {
+          int currLen = strlen(currCommand->getName());
+          if (currLen > commandLen) { commandLen = currLen; }
+          currCommand = currCommand->next();
+        }
+
+        currCommand = first();
+        while (currCommand) {
+          const char* help = currCommand->getHelp();
+          if (help) {
+            c->print("  ");
+            c->print(currCommand->getName());
+            for (int i = strlen(currCommand->getName()); i < commandLen + 3; i++) { c->write(' '); }
+            c->println(help);
+          }
+          currCommand = currCommand->next();
+        }
+      }
+    }
 };
 
-void HelpCommand::execute(Console* c, uint8_t paramCount, char** params) {
-  Command* h = nullptr;
-  if (paramCount) {
-    h = Command::getByName(params[1]);
-    if (h) {
-      h->printError(c);
-    }
-  }
-  if (h == nullptr) {
-    c->print("Known Commands:\n");
-
-    Command* currCommand = first();
-    int commandLen = 0;
-    while (currCommand) {
-      int currLen = strlen(currCommand->getName());
-      if (currLen > commandLen) { commandLen = currLen; }
-      currCommand = currCommand->next();
-    }
-
-    currCommand = first();
-    while (currCommand) {
-      const char* help = currCommand->getHelp();
-      if (help) {
-        c->print("  ");
-        c->print(currCommand->getName());
-        for (int i = strlen(currCommand->getName()); i < commandLen + 3; i++) { c->write(' '); }
-        c->println(help);
-      }
-      currCommand = currCommand->next();
-    }
-  }
-}
-
-HelpCommand theHelpCommand;
+extern HelpCommand theHelpCommand;
 
 class HelpQCommand : public HelpCommand {
   public:
@@ -357,6 +370,6 @@ class HelpQCommand : public HelpCommand {
     const char* getHelp() { return nullptr; }
 };
 
-HelpQCommand theHelpQCommand;
+extern HelpQCommand theHelpQCommand;
 
 #endif

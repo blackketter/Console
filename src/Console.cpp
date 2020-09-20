@@ -166,17 +166,19 @@ void Console::debugf(const char* format, ...) {
 void Console::debug(const char* s) {
   char prefix[PREFIX_LEN];
   debugPrefix(prefix);
-  appendLog(prefix);
-  appendLog(s);
-
-  if (!printDebug()) return;
-  print(prefix);
-  print(s);
+  debugAppend(prefix);
+  debugAppend(s);
 }
+
 void Console::debugln(const char* s) {
   debug(s);
-  appendLog("\n");
-  if (printDebug()) { write('\n'); }
+  debugAppend("\n");
+}
+
+void Console::debugAppend(const char* s) {
+  appendLog(s);
+  if (!printDebug()) return;
+  print(s);
 }
 
 void Console::appendLog(const char* s) {
@@ -184,7 +186,7 @@ void Console::appendLog(const char* s) {
 }
 
 void Console::appendLog(const char*s, size_t len) {
-  if (_debugLogSize == 0) {
+  if (_debugLog == 0) {
     return;
   }
   const char* curChar = s;
@@ -211,17 +213,8 @@ void Console::appendLog(const char*s, size_t len) {
   }
 }
 
-bool Console::printDebug() {
-  // TODO - pause debug output while editing command line in shell
-  return _debugEnabled;
-}
-
-void Console::printLog() {
-  printLog(this);
-}
-
 void Console::printLog(Print* p) {
-  if (_debugLogSize == 0) {
+  if (_debugLog == 0) {
     p->print("No log buffer\n");
     return;
   }
@@ -263,4 +256,13 @@ void Console::printLog(Print* p) {
     return;
   }
 };
+
+bool Console::printDebug() {
+  // TODO - pause debug output while editing command line in shell
+  return _debugEnabled;
+}
+
+void Console::printLog() {
+  printLog(this);
+}
 

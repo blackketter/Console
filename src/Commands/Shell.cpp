@@ -133,8 +133,65 @@ bool Shell::executeCommandLine(Console* output, const char* line) {
     while (!isBetween(line[commandLineIndex], quoting)) {
       if (isEscape(line[commandLineIndex])) {
         commandLineIndex++;
+        char replacement = 0;
+        char h, l;
+        switch (line[commandLineIndex]) {
+          case 'a':
+            replacement = '\a';
+            break;
+          case 'b':
+            replacement = '\b';
+            break;
+          case 'e':
+            replacement = '\e';
+            break;
+          case 'f':
+            replacement = '\f';
+            break;
+          case 'n':
+            replacement = '\n';
+            break;
+          case 'r':
+            replacement = '\r';
+            break;
+          case 't':
+            replacement = '\t';
+            break;
+          case 'v':
+            replacement = '\v';
+            break;
+          case 'x':
+            h = line[commandLineIndex+1];
+            if (h >= 'A' && h <= 'F') {
+              replacement = (h - 'A')<<4;
+            } else if (h >= 'a' && h <= 'f') {
+              replacement = (h - 'a')<<4;
+            } else if (h >= '0' && h <= '9') {
+              replacement = (h - '0')<<4;
+            } else {
+              replacement = 'x';
+              break;
+            }
+            l = line[commandLineIndex+2];
+            if (l >= 'A' && l <= 'F') {
+              replacement += (l - 'A');
+            } else if (l >= 'a' && l <= 'f') {
+              replacement += (l - 'a');
+            } else if (l >= '0' && l <= '9') {
+              replacement += (l - '0');
+            } else {
+              replacement = 'x';
+              break;
+            }
+            commandLineIndex+=2;
+            break;
+          default:
+            replacement = line[commandLineIndex];
+        }
+        paramStrings[paramCount] += replacement;
+      } else {
+        paramStrings[paramCount] += line[commandLineIndex];
       }
-      paramStrings[paramCount] += line[commandLineIndex];
       commandLineIndex++;
     }
 

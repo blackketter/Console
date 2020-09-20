@@ -22,7 +22,6 @@ uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
 }
 
 void printInfo(Print* p) {
-  Clock theClock;
 
   const char* board = "Unknown";
 
@@ -61,11 +60,15 @@ void printInfo(Print* p) {
   p->printf("Uptime: %d.%d\n", (int)(up/1000), (int)(up%1000));
   p->printf("CPU Speed: %d\n", (int)F_CPU);
 
-  char string[100];
-  theClock.longTime(string);
-  p->printf("Time: %s\n", string);
-  theClock.longDate(string);
-  p->printf("Date: %s\n", string);
+  Clock theClock;
+
+  p->print("Time: ");
+  theClock.longTime(*p);
+  p->println();
+
+  p->print("Date: ");
+  theClock.longDate(*p);
+  p->println();
 }
 
 

@@ -20,6 +20,7 @@ class Console : public Stream {
     void debugf(const char* format, ...);
     void debugln(const char* s);
     void debug(const char* s);
+    void debugAppend(const char* s);  // appends to log and output (without prefix)
     void debugEnable(bool enable) { _debugEnabled = enable; };
     bool debugEnabled() { return _debugEnabled; }
 
