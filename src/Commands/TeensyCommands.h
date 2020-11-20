@@ -6,10 +6,14 @@
 
 // System reboot
 void reboot() {
+#if defined(__IMXRT1062__)
+  SCB_AIRCR = 0x05FA0004;
+#else
       while (1) {
         delay(100);
         CPU_RESTART
       };
+#endif
 }
 
 // Firmware upload
