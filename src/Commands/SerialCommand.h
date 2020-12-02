@@ -108,7 +108,7 @@ class SerialCommand : public Command {
     static const millis_t TIMEOUT_LIMIT = 10000;
 };
 
-extern SerialCommand theSerialCommand;
+SerialCommand theSerialCommand;
 
 
 #endif
