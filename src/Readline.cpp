@@ -166,6 +166,7 @@ void Readline::add_history(String& line) {
   
   // don't add duplicate lines to history
   if (line == _history[1]) {
+    _currHistory = 0;
     return;
   }
   
