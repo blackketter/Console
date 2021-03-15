@@ -49,6 +49,9 @@ inline bool isSpace(char c) {
 inline bool isEnd(char c) {
   return c == 0;
 }
+inline bool isSemi(char c) {
+  return c == ';';
+}
 inline bool isQuote(char c) {
   return c == '"';
 }
@@ -61,9 +64,10 @@ inline bool isBetween(char c, bool quoting) {
   if (quoting) {
     return isQuote(c) || isEnd(c);
   } else {
-    return isSpace(c) || isEnd(c);
+    return isSpace(c) || isEnd(c) || isSemi(c);
   }
 }
+
 inline bool isLineNum(char c) {
   return c >= '0' && c <= '9';
 }
@@ -121,7 +125,7 @@ bool Shell::executeCommandLine(Console* output, const char* line) {
       commandLineIndex++;
     }
 
-    if (isEnd(line[commandLineIndex])) {
+    if (isEnd(line[commandLineIndex]) || isSemi(line[commandLineIndex])) {
       break;
     }
 
@@ -206,7 +210,7 @@ bool Shell::executeCommandLine(Console* output, const char* line) {
       break;
     }
 
-    if (isEnd(line[commandLineIndex])) {
+    if (isEnd(line[commandLineIndex]) || isSemi(line[commandLineIndex])) {
       break;
     }
   };
@@ -222,6 +226,10 @@ bool Shell::executeCommandLine(Console* output, const char* line) {
 
       c->execute(output, paramCount-1, params);
       _lastCommand = c;
+      if (isSemi(line[commandLineIndex])) {
+        // TODO: Make this not recursive, or at least get the paramStrings off the stack
+        executeCommandLine(output, &line[commandLineIndex+1]);
+      }
     } else {
       failure = true;
       _lastCommand = nullptr;
