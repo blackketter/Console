@@ -6,7 +6,7 @@
 #include "Commands/FileCommands.h"
 #include "Commands/FPSCommand.h"
 #include "Commands/InfoCommand.h"
-
+#include "Commands/DateCommand.h"
 
 //These use a meaningful amount of string RAM on ESP8266, so disabled by default
 #if !defined(ESP8266)
