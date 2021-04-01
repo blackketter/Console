@@ -5,7 +5,14 @@
 // todo:
 //      c->printf("  Free Heap:   %d\n", ESP.getFreeHeap());
 
-uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
+uint32_t FreeMem() { 
+#if defined(ARDUINO_TEENSY41) || defined(ARDUINO_TEENSY40)
+//extern unsigned long _heap_start;
+extern unsigned long _heap_end;
+extern char *__brkval;
+
+  return (char *)&_heap_end - __brkval;
+#else
     uint32_t stackTop;
     uint32_t heapTop;
 
@@ -19,6 +26,7 @@ uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
 
     // The difference is (approximately) the free, available ram.
     return stackTop - heapTop;
+#endif
 }
 
 void printInfo(Print* p) {
