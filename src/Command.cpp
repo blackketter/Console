@@ -12,7 +12,7 @@ void Command::addCommand(Command* c) {
   setFirst(c);
 }
 
-void Command::printError(Stream* c) {
+void Command::printError(Console* c) {
   c->printf("Usage: %s %s\n", getName(), getHelp());
 }
 

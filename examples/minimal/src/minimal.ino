@@ -1,6 +1,9 @@
+#include "Arduino.h"
+#include "TimeLib.h"
+
 /*
   Minimal Console Example
- */
+*/
 #include "Console.h"
 
 Console console;
@@ -24,4 +27,3 @@ void loop() {
   // each time you draw a new frame you can tell the FPSCommand to note it for statistics
   theFPSCommand.newFrame();
 }
-

@@ -47,6 +47,13 @@ class Console : public Stream {
     void appendLog(const char* a, size_t size);
 
     Shell* getShell() { return &_shell; }
+#if !defined(TEENSYDUINO) && !defined(ESP_PLATFORM) && !defined(ESP8266)
+    int printf(const char *format, ...);
+#endif
+
+/*	int printf(const char *format, ...);
+	int printf(const __FlashStringHelper *format, ...);
+*/
 
   private:
     void debugPrefix(char* s);

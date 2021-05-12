@@ -12,7 +12,7 @@
 #if !defined(ESP8266)
 
 // useful for hardware testing.
-#include "Commands/i2cCommand.h"
+//#include "Commands/i2cCommand.h"
 //#include "Commands/SerialCommand.h"
 #include "Commands/PinCommand.h"
 

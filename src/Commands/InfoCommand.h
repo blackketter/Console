@@ -5,7 +5,8 @@
 // todo:
 //      c->printf("  Free Heap:   %d\n", ESP.getFreeHeap());
 
-uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
+uint32_t FreeMem() { 
+// for Teensy 3.0 (wrong for teensy 4.0)
     uint32_t stackTop;
     uint32_t heapTop;
 
@@ -21,7 +22,7 @@ uint32_t FreeMem() { // for Teensy 3.0 (wrong for teensy 4.0)
     return stackTop - heapTop;
 }
 
-void printInfo(Print* p) {
+void printSysInfo(Console* p) {
 
   const char* board = "Unknown";
 
@@ -29,7 +30,7 @@ void printInfo(Print* p) {
   board = ARDUINO_BOARD;
 
 #elif defined(BOARD_NAME)
-  board = BOARD_NAME
+  board = BOARD_NAME;
 
 #elif defined(TEENSY40)  || defined(ARDUINO_TEENSY40)
   board = "Teensy 4.0";
@@ -51,10 +52,11 @@ void printInfo(Print* p) {
 
 #else
 #warning Unknown board for InfoCommand
+  board = "Unknown";
 #endif
 
   p->printf("Board: %s\n", board);
-  p->printf("Compiled: " __DATE__ " " __TIME__ "\n");
+  p->print("Compiled: " __DATE__ " " __TIME__ "\n");
   p->printf("Free ram: %10d\n", FreeMem());
   millis_t up = Uptime::millis();
   p->printf("Uptime: %d.%d\n", (int)(up/1000), (int)(up%1000));
@@ -77,7 +79,7 @@ class InfoCommand : public Command {
     const char* getName() { return "info"; }
     const char* getHelp() { return "Print System Info"; }
     void execute(Console* c, uint8_t paramCount, char** params) {
-      printInfo(c);
+      printSysInfo(c);
     }
 };
 

@@ -30,7 +30,7 @@ class Command {
     static void sortCommands();
 
     // utility methods
-    void printError(Stream* c);
+    void printError(Console* c);
     static void killAll();
 
     // hack: execute should have had constant params from the start

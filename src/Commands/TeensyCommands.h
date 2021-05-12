@@ -19,7 +19,9 @@ void reboot() {
 // Firmware upload
 void reload() {
 #if defined(__IMXRT1062__) || defined(__MK66FX1M0__) || defined(__MKL26Z64__)
-      asm("bkpt #251"); // run bootloader
+  asm("bkpt #251"); // run bootloader
+#else
+  _reboot_Teensyduino_();
 #endif
 }
 

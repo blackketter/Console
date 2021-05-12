@@ -1,8 +1,8 @@
 #ifndef _FileCommands_
 #define _FileCommands_
+#if defined(HAS_SD) || defined(BUILTIN_SDCARD)
 #include <SD.h>
 #include <SPI.h>
-#if defined(HAS_SD) || defined(BUILTIN_SDCARD)
 
 void printDirectory(Stream* c, File dir, int numTabs, bool recurse) {
   while(true) {

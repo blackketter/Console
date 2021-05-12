@@ -8,7 +8,7 @@ class pinCommand : public Command {
     pinCommand() { for (uint8_t i = 0; i < maxPins; i++) { blinking[i] = 0; } }
     const char* getName() { return "pin"; }
     const char* getHelp() { return "<on|off|blink|read|input|pullup|awrite val|aread> <pin numbers...> - Set or read a pin"; }
-    void printState(Stream* c, uint8_t pin) {
+    void printState(Console* c, uint8_t pin) {
       c->printf("  Pin: %d %s\n", pin, digitalRead(pin) ? "HIGH" : "LOW");
     }
     void execute(Console* c, uint8_t paramCount, char** params) {
